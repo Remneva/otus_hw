@@ -1,4 +1,4 @@
-module github.com/Remneva/hw02_unpack_string
+module github.com/Remneva/otus_hw/hw02_unpack_string
 
 go 1.14
 
