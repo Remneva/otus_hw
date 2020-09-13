@@ -13,7 +13,7 @@ func Unpack(s string) (string, error) {
 	var result string
 	for i, v := range []rune(s) {
 		if unicode.IsDigit(v) {
-			err := ErrInvalidString
+			var err error
 			result, err = workWithDigit(i, s, v, result)
 			if err != nil {
 				return "", err
