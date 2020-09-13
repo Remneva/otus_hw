@@ -16,27 +16,32 @@ func Unpack(s string) (string, error) {
 		var g string
 		if unicode.IsDigit(v) {
 			b, _ := strconv.Atoi(string(v))
-
-			if i == 0 { // проверка первого символа - первый символ не должен быть интом
-				return "", ErrInvalidString
-			}
-			_, err := strconv.Atoi(string([]rune(s)[i-1])) // проверка предыдущего символа - не должно ыть два инта подряд
-
+			err := stringCheck(i, s)
 			if err == nil {
-				return "", ErrInvalidString
-			}
-			if b == 0 { // если инт = 0, не повторять букву ни одного раза
-				size := len(result)
-				result = result[:size-1]
-
+				if b == 0 { // если инт = 0, не повторять букву ни одного раза
+					size := len(result)
+					result = result[:size-1]
+				} else {
+					g = strings.Repeat(string([]rune(s)[i-1]), b-1)
+					result += g
+				}
 			} else {
-				g = strings.Repeat(string([]rune(s)[i-1]), b-1)
-				result += g
+				return "", err
 			}
-
 		} else {
 			result += string(v)
 		}
 	}
 	return result, nil
+}
+
+func stringCheck(i int, s string) error {
+	if i == 0 { // проверка первого символа - первый символ не должен быть интом
+		return ErrInvalidString
+	}
+	_, err := strconv.Atoi(string([]rune(s)[i-1])) // проверка предыдущего символа - не должно быть два инта подряд
+	if err == nil {
+		return ErrInvalidString
+	}
+	return nil
 }
