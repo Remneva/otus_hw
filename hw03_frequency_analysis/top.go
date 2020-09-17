@@ -5,42 +5,36 @@ import (
 	"strings"
 )
 
+type kv struct {
+	Key   string
+	Value int
+}
+
 func Top10(s string) []string {
 
 	var result []string
+	var slice []kv
 	cache := make(map[string]int)
 
-	type kv struct {
-		Key   string
-		Value int
-	}
-
-	var text = strings.Fields(s) // делим строку на саб строки по пробелам и кладем в слайс
-	for _, s := range text {     // кладем их в мапку, ключив мапе уникальны, если значения дублируются, value увеличивается
+	var text = strings.Fields(s)
+	for _, s := range text {
 		cache[s]++
 	}
-
-	var slice []kv
-	for k, v := range cache { // из мапы перекладываем в слайс для соритровки
+	for k, v := range cache {
 		slice = append(slice, kv{k, v})
 	}
-
-	sort.Slice(slice, func(i, j int) bool { // сортируем слайс
+	sort.Slice(slice, func(i, j int) bool {
 		return slice[i].Value > slice[j].Value
 	})
-
-	slice2 := make([]kv, 10, 10) // создаем слайс с длиной 10
-
-	for i, kv := range slice { // берем первые 10 ключей из первого слайса
+	slice2 := make([]kv, 10)
+	for i, kv := range slice {
 		if i < 10 {
 			slice2[i] = slice[i]
 			result = append(result, kv.Key)
 		}
-
 	}
-	for _, k := range result { // проверка результата
+	for _, k := range result {
 		fmt.Printf("%s\t", k)
 	}
-
 	return result
 }
