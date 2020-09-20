@@ -11,10 +11,9 @@ type kv struct {
 }
 
 func Top10(s string) []string {
-
 	var result []string
-	var slice []kv
 	cache := make(map[string]int)
+	slice := make([]kv, len(cache))
 
 	var text = strings.Fields(s)
 	for _, s := range text {

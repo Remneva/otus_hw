@@ -56,5 +56,11 @@ func TestTop10(t *testing.T) {
 			expected := []string{"он", "и", "а", "что", "ты", "не", "если", "-", "то", "Кристофер"}
 			require.ElementsMatch(t, expected, Top10(text))
 		}
+
+	})
+	t.Run("Integer in text", func(t *testing.T) {
+		text = "3"
+		expected := []string{"3"}
+		require.ElementsMatch(t, expected, Top10(text))
 	})
 }
