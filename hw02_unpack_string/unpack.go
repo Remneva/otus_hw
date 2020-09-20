@@ -10,37 +10,38 @@ import (
 var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(s string) (string, error) {
-	var result string
+	var result strings.Builder
 	for i, v := range []rune(s) {
 		if unicode.IsDigit(v) {
 			var err error
-			result, err = workWithDigit(i, s, v, result)
+			_, err = workWithDigit(i, s, v, &result)
 			if err != nil {
 				return "", err
 			}
 		} else {
-			result += string(v)
+			result.WriteRune(v)
 		}
 	}
-	return result, nil
+	return result.String(), nil
 }
 
-func workWithDigit(i int, s string, v rune, result string) (string, error) {
-	b, _ := strconv.Atoi(string(v))
+func workWithDigit(i int, s string, v rune, result *strings.Builder) (*strings.Builder, error) {
 	var g string
-	if i == 0 { // проверка первого символа - первый символ не должен быть интом
-		return result, ErrInvalidString
+	b, _ := strconv.Atoi(string(v))
+	if i == 0 {
+		return nil, ErrInvalidString
 	}
-	_, err := strconv.Atoi(string([]rune(s)[i-1])) // проверка предыдущего символа - не должно быть два инта подряд
+	_, err := strconv.Atoi(string(s[i-1]))
 	if err == nil {
-		return result, ErrInvalidString
+		return nil, ErrInvalidString
 	}
-	if b == 0 { // если инт = 0, не повторять букву ни одного раза
-		size := len(result)
-		result = result[:size-1]
+	if b == 0 {
+		size := result.Len()
+		result.Reset()
+		result.WriteString(s[:size-1])
 	} else {
-		g = strings.Repeat(string([]rune(s)[i-1]), b-1) // повторить букву i раз
-		result += g
+		g = strings.Repeat(string(s[i-1]), b-1)
+		result.WriteString(g)
 	}
 	return result, nil
 }
