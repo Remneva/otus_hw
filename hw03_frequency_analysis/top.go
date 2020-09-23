@@ -1,6 +1,5 @@
 package hw03_frequency_analysis //nolint:golint,stylecheck
 import (
-	"fmt"
 	"sort"
 	"strings"
 )
@@ -11,29 +10,26 @@ type kv struct {
 }
 
 func Top10(s string) []string {
-	var result []string
 	cache := make(map[string]int)
-	slice := make([]kv, len(cache))
-
 	var text = strings.Fields(s)
 	for _, s := range text {
 		cache[s]++
 	}
+
+	var slice = make([]kv, 0, len(cache))
 	for k, v := range cache {
 		slice = append(slice, kv{k, v})
 	}
 	sort.Slice(slice, func(i, j int) bool {
 		return slice[i].Value > slice[j].Value
 	})
-	slice2 := make([]kv, 10)
+	var result = make([]string, 0, len(slice))
 	for i, kv := range slice {
 		if i < 10 {
-			slice2[i] = slice[i]
 			result = append(result, kv.Key)
+		} else {
+			break
 		}
-	}
-	for _, k := range result {
-		fmt.Printf("%s\t", k)
 	}
 	return result
 }
