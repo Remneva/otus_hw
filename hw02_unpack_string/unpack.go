@@ -11,10 +11,11 @@ var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(s string) (string, error) {
 	var result strings.Builder
-	for i, v := range []rune(s) {
+	str := []rune(s)
+	for i, v := range str {
 		if unicode.IsDigit(v) {
 			var err error
-			_, err = workWithDigit(i, s, v, &result)
+			_, err = workWithDigit(i, str, v, &result)
 			if err != nil {
 				return "", err
 			}
@@ -25,22 +26,22 @@ func Unpack(s string) (string, error) {
 	return result.String(), nil
 }
 
-func workWithDigit(i int, s string, v rune, result *strings.Builder) (*strings.Builder, error) {
+func workWithDigit(i int, str []rune, v rune, result *strings.Builder) (*strings.Builder, error) {
 	var g string
 	b, _ := strconv.Atoi(string(v))
 	if i == 0 {
 		return nil, ErrInvalidString
 	}
-	_, err := strconv.Atoi(string(s[i-1]))
+	_, err := strconv.Atoi(string(str[i-1]))
 	if err == nil {
 		return nil, ErrInvalidString
 	}
 	if b == 0 {
 		size := result.Len()
 		result.Reset()
-		result.WriteString(s[:size-1])
+		result.WriteString(string(str[:size-1]))
 	} else {
-		g = strings.Repeat(string(s[i-1]), b-1)
+		g = strings.Repeat(string(str[i-1]), b-1)
 		result.WriteString(g)
 	}
 	return result, nil
