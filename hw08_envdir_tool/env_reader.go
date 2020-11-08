@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type Environment map[string]string
@@ -19,7 +21,7 @@ func ReadDir(dir string) (Environment, error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		fmt.Println(err)
-		return nil, err
+		return nil, errors.Wrap(err, "readDir failed")
 	}
 
 	for _, f := range files {
