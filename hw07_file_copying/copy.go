@@ -31,11 +31,11 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	_, err = file.Seek(offset, io.SeekStart)
 
 	if err != nil {
-		return fmt.Errorf("failed to set offset: %v", err)
+		return fmt.Errorf("failed to set offset: %w", err)
 	}
 	newFile, err := os.Create(toPath)
 	if err != nil {
-		return fmt.Errorf("failed to trying create file: %v", err)
+		return fmt.Errorf("failed to trying create file: %w", err)
 	}
 	bw := bufio.NewWriter(newFile)
 

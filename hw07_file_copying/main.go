@@ -50,10 +50,9 @@ func main() {
 		fmt.Println(err)
 	}
 	fromPath := dir + "/" + from
-	toPath := dir + "/" + to
 
 	<-startCh
-	err = Copy(fromPath, toPath, offset, limit)
+	err = Copy(fromPath, to, offset, limit)
 	if err != nil {
 		fmt.Println(err)
 	}
