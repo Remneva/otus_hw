@@ -2,6 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
+	"time"
+
+	pb "github.com/cheggaaa/pb"
 )
 
 var (
@@ -18,5 +23,42 @@ func init() {
 
 func main() {
 	flag.Parse()
-	// Place your code here
+	var endCh = make(chan struct{})
+	var startCh = make(chan struct{})
+
+	bar := pb.New(847).SetUnits(pb.U_BYTES)
+	bar.ShowPercent = true
+	bar.ShowCounters = false
+	bar.SetRefreshRate(time.Millisecond)
+
+	go func() {
+		startCh <- struct{}{}
+		bar.Start()
+		for {
+			select {
+			case <-endCh:
+				bar.Finish()
+			default:
+				bar.Increment()
+				time.Sleep(time.Millisecond)
+			}
+		}
+	}()
+
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fromPath := dir + "/" + from
+	toPath := dir + "/" + to
+
+	<-startCh
+	err = Copy(fromPath, toPath, offset, limit)
+	if err != nil {
+		fmt.Println(err)
+	}
+	endCh <- struct{}{}
+
+	close(endCh)
+	close(startCh)
 }
