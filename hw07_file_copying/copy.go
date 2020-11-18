@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -30,11 +31,11 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	_, err = file.Seek(offset, io.SeekStart)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to set offset: %v", err)
 	}
 	newFile, err := os.Create(toPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to trying create file: %v", err)
 	}
 	bw := bufio.NewWriter(newFile)
 
