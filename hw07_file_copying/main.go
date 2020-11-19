@@ -44,6 +44,14 @@ func main() {
 		}
 	}()
 
+	//dir, err := os.Getwd()
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//fromPath := dir + "/" + from
+	//toPath := dir + "/" + to
+	fmt.Println("to: ", to)
+	fmt.Println("toPath: ", to)
 	<-startCh
 	err := Copy(from, to, offset, limit)
 
