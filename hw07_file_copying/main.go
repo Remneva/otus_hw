@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/cheggaaa/pb"
@@ -45,16 +44,8 @@ func main() {
 		}
 	}()
 
-	dir, err := os.Getwd()
-	if err != nil {
-		fmt.Println(err)
-	}
-	fromPath := dir + "/" + from
-	toPath := dir + "/" + to
-	fmt.Println("to: ", to)
-	fmt.Println("toPath: ", toPath)
 	<-startCh
-	err = Copy(fromPath, toPath, offset, limit)
+	err := Copy(from, to, offset, limit)
 
 	if err != nil {
 		fmt.Println(err)

@@ -16,6 +16,18 @@ var (
 
 func Copy(fromPath string, toPath string, offset, limit int64) error {
 	time.Sleep(time.Second)
+
+	fmt.Println("from 1: ", fromPath)
+	fmt.Println("to 1: ", toPath)
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fromPath = dir + "/" + fromPath
+	toPath = dir + "/" + toPath
+	fmt.Println("from 2: ", fromPath)
+	fmt.Println("to 2: ", toPath)
+
 	file, err := os.OpenFile(fromPath, os.O_RDWR, 0666)
 	if err != nil {
 		return ErrUnsupportedFile
