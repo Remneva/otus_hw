@@ -51,10 +51,11 @@ func main() {
 	}
 	fromPath := dir + "/" + from
 	toPath := dir + "/" + to
-	<-startCh
-	err = Copy(fromPath, toPath, offset, limit)
 	fmt.Println("to: ", to)
 	fmt.Println("toPath: ", toPath)
+	<-startCh
+	err = Copy(fromPath, toPath, offset, limit)
+
 	if err != nil {
 		fmt.Println(err)
 	}
