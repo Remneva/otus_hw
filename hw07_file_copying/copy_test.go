@@ -43,6 +43,11 @@ func TestCopy(t *testing.T) {
 
 	t.Run("Success copy", func(t *testing.T) {
 
+		dir, err := os.Getwd()
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("dir: ", dir)
 		content := []byte("Hello world")
 		tmpfile, err := ioutil.TempFile("", "test.")
 		if err != nil {
@@ -53,7 +58,7 @@ func TestCopy(t *testing.T) {
 			fmt.Println("write file err: ", err)
 			log.Println(err)
 		}
-
+		fmt.Println("tmpfile: ", tmpfile.Name())
 		err = Copy(tmpfile.Name(), "testdata/expected.txt", 0, 0)
 		if err != nil {
 			log.Println(err)
