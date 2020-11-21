@@ -54,12 +54,9 @@ func main() {
 	fmt.Println("toPath: ", to)
 	<-startCh
 	err := Copy(from, to, offset, limit)
-
 	if err != nil {
 		fmt.Println(err)
 	}
-	endCh <- struct{}{}
-
 	close(endCh)
 	close(startCh)
 }

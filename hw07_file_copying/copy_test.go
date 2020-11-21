@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
@@ -49,6 +50,7 @@ func TestCopy(t *testing.T) {
 		}
 		defer os.Remove(tmpfile.Name())
 		if _, err := tmpfile.Write(content); err != nil {
+			fmt.Println("write file err: ", err)
 			log.Println(err)
 		}
 
@@ -58,9 +60,11 @@ func TestCopy(t *testing.T) {
 		}
 		file, err := ioutil.ReadFile("testdata/expected.txt")
 		if err != nil {
+			fmt.Println("read file err: ", err)
 			log.Fatal(err)
 		}
 		actual := string(file)
+		fmt.Println("actual: ", actual)
 		expected := "Hello world"
 		result := reflect.DeepEqual(expected, actual)
 		assert.True(t, result)
