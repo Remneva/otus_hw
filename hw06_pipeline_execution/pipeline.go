@@ -28,8 +28,7 @@ func insertDone(in In, done Bi) Out {
 	return out
 }
 func ExecutePipeline(in In, done Bi, stages ...Stage) Out {
-	out := make(Out)
-	out = stages[0](insertDone(in, done))
+	out := stages[0](insertDone(in, done))
 	for _, s := range stages[1:] {
 		out = insertDone(s(insertDone(out, done)), done)
 	}
