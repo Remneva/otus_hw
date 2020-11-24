@@ -14,14 +14,13 @@ func insertDone(in In, done Bi) Out {
 		defer close(out)
 		for {
 			select {
-			case vv := <-in:
-				if vv != nil {
-					out <- vv
-				} else {
-					return
-				}
 			case <-done:
 				return
+			case vv, ok := <-in:
+				if !ok {
+					return
+				}
+				out <- vv
 			}
 		}
 	}()
@@ -30,7 +29,7 @@ func insertDone(in In, done Bi) Out {
 func ExecutePipeline(in In, done Bi, stages ...Stage) Out {
 	out := stages[0](insertDone(in, done))
 	for _, s := range stages[1:] {
-		out = insertDone(s(insertDone(out, done)), done)
+		out = s(insertDone(out, done))
 	}
 	return out
 }
