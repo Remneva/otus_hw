@@ -20,7 +20,11 @@ func insertDone(in In, done Bi) Out {
 				if !ok {
 					return
 				}
-				out <- vv
+				select {
+				case <-done:
+					return
+				case out <- vv:
+				}
 			}
 		}
 	}()
