@@ -99,7 +99,7 @@ func (s *Storage) GetEvent(ctx context.Context, Id int64) (sqlstorage.Event, err
 		return ev, err
 	}
 
-	return ev, row.Err()
+	return ev, err
 }
 
 func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
