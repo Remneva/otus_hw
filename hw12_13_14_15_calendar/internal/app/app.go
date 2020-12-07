@@ -3,11 +3,13 @@ package app
 import (
 	"context"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage"
+	sqlstorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
+	"go.uber.org/zap"
 )
 
 type App struct {
-	// TODO
+	r sqlstorage.BaseStorage
+	l *zap.Logger
 }
 
 type Logger interface {
@@ -18,12 +20,22 @@ type Storage interface {
 	// TODO
 }
 
-func New(logger Logger, storage Storage) *App {
-	return &App{}
+func (a *App) Run(ctx context.Context) error {
+	events, err := a.r.GetEvents(ctx)
+	if err != nil {
+		return err
+	}
+	for _, ev := range events {
+		a.l.Info("ev: ", zap.String("Nahuatl name", ev.Title))
+	}
+
+	return nil
 }
 
-func (a *App) CreateEvent(ctx context.Context, id string, title string) error {
-	return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
+func New(logger *zap.Logger, r sqlstorage.BaseStorage) (*App, error) {
+	return &App{r: r, l: logger}, nil
 }
 
-// TODO
+func (a *App) CreateEvent(ctx context.Context, id int64, title string) error {
+	return a.r.CreateEvent(ctx, sqlstorage.Event{Id: id, Title: title})
+}
