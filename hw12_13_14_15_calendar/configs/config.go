@@ -1,4 +1,4 @@
-package configs
+package configs //nolint:golint,stylecheck
 
 import (
 	"fmt"

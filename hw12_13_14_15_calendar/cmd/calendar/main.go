@@ -1,5 +1,4 @@
-//nolint
-package main
+package main //nolint:golint,stylecheck
 
 import (
 	"context"
