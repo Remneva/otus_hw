@@ -1,4 +1,4 @@
-package app
+package app //nolint:golint,stylecheck
 
 import (
 	"context"

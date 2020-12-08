@@ -1,4 +1,3 @@
-//nolint
 package memorystorage
 
 import (
@@ -6,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"strconv"
-	"sync"
 	"time"
 
 	sqlstorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
@@ -19,7 +17,6 @@ var _ sqlstorage.BaseStorage = (*Storage)(nil)
 
 type Storage struct {
 	db *sql.DB
-	mu sync.RWMutex
 	l  *zap.Logger
 }
 

@@ -1,10 +1,10 @@
-//nolint
-package sqlstorage
+package sqlstorage //nolint:golint,stylecheck
 
 import (
 	"context"
 	"time"
 
+	// Postgres driver.
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 

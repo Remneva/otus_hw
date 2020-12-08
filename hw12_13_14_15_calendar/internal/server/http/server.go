@@ -1,9 +1,7 @@
-//nolint
-package internalhttp
+package internalhttp //nolint:golint,stylecheck
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -13,8 +11,7 @@ import (
 )
 
 type MyHandler struct {
-	db sql.DB
-	l  *zap.Logger
+	l *zap.Logger
 }
 
 type Server struct {
@@ -53,7 +50,8 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err := s.Shutdown(ctx)
 	if err != nil {
