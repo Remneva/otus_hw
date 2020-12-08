@@ -1,14 +1,23 @@
 package logger
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/dchest/safefile"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
+var ErrLogger = errors.New("logger creation error")
+
 func NewLogger(level zapcore.Level, outputfile string) *zap.Logger {
+	err := mkFile(outputfile)
+	if err != nil {
+		return nil
+	}
 	cfg := zap.NewProductionConfig()
 	cfg.EncoderConfig.EncodeTime = syslogTimeEncoder
 	cfg.EncoderConfig.EncodeLevel = customLevelEncoder
@@ -30,4 +39,30 @@ func syslogTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 
 func customLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString("[" + level.String() + "]")
+}
+
+func mkFile(path string) error {
+	existFile := Exists(path)
+	if !existFile {
+		err := os.Mkdir("/tmp/tmpdir", 0755)
+		if err != nil {
+			return ErrLogger
+		}
+		tmpfile, err := safefile.Create(path, 0755)
+		if err != nil {
+			return ErrLogger
+		}
+		defer tmpfile.Close()
+		return nil
+	}
+	return nil
+}
+
+func Exists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }

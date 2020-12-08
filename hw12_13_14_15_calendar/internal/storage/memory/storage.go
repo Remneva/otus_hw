@@ -1,17 +1,20 @@
+//nolint
 package memorystorage
 
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	sqlstorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
-	"github.com/apex/log"
-	"go.uber.org/zap"
+	"errors"
 	"strconv"
 	"sync"
 	"time"
+
+	sqlstorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
+	"github.com/apex/log"
+	"go.uber.org/zap"
 )
 
+var ErrConnection = errors.New("connection error")
 var _ sqlstorage.BaseStorage = (*Storage)(nil)
 
 type Storage struct {
@@ -25,10 +28,10 @@ func New() *Storage {
 }
 
 func (s *Storage) Connect(ctx context.Context, dsn string) (err error) {
-	fmt.Println("dsn: ", dsn)
 	s.db, err = sql.Open("pgx", dsn)
 	if err != nil {
-		return
+		s.l.Error("Error", zap.String("Driver", err.Error()))
+		return ErrConnection
 	}
 	s.db.Stats()
 	return s.db.PingContext(ctx)
@@ -38,31 +41,32 @@ func (s *Storage) Close(ctx context.Context) error {
 	return s.db.Close()
 }
 
-func (s *Storage) DeleteEvent(ctx context.Context, Id int64) error {
+func (s *Storage) DeleteEvent(ctx context.Context, id int64) error {
 	row, err := s.db.ExecContext(ctx, `
-		DELETE from events where Id = $1
-		`, Id)
+		DELETE from events where ID = $1
+		`, id)
 	if err != nil {
-		return err
+		s.l.Error("Error", zap.String("Connection", err.Error()))
+		return ErrConnection
 	}
 	rowAffected, _ := row.RowsAffected()
 	log.Debug(strconv.FormatInt(rowAffected, 10))
 	return nil
 }
 
-func (s *Storage) UpdateEvent(ctx context.Context, FieldToChange string, NewValue interface{}, Id int64) (sqlstorage.Event, error) {
+func (s *Storage) UpdateEvent(ctx context.Context, fieldToChange string, newValue interface{}, id int64) (sqlstorage.Event, error) {
 	var ev sqlstorage.Event
 	row, err := s.db.QueryContext(ctx, `
 		Update events 
 		set $1 = $2
-		where Id = $3
-		`, FieldToChange, NewValue, Id)
+		where ID = $3
+		`, fieldToChange, newValue, id)
 	if err != nil {
-		return ev, err
+		return ev, ErrConnection
 	}
 	defer row.Close()
 	err = row.Scan(
-		&ev.Id,
+		&ev.ID,
 		&ev.Title,
 		&ev.Owner,
 		&ev.StartDate,
@@ -71,18 +75,18 @@ func (s *Storage) UpdateEvent(ctx context.Context, FieldToChange string, NewValu
 		&ev.EndTime)
 
 	if err != nil {
-		return ev, err
-		log.Debug("cant't update")
+		s.l.Error("Update error", zap.String("query", row.Err().Error()))
+		return ev, ErrConnection
 	}
 	return ev, row.Err()
 }
 
-func (s *Storage) GetEvent(ctx context.Context, Id int64) (sqlstorage.Event, error) {
+func (s *Storage) GetEvent(ctx context.Context, id int64) (sqlstorage.Event, error) {
 	var ev sqlstorage.Event
 	row := s.db.QueryRowContext(ctx, `
-		SELECT title, descr, start_date, start_time, end_date, end_time FROM events where Id = $1`, Id)
+		SELECT title, descr, start_date, start_time, end_date, end_time FROM events where ID = $1`, id)
 	err := row.Scan(
-		&ev.Id,
+		&ev.ID,
 		&ev.Title,
 		&ev.Owner,
 		&ev.StartDate,
@@ -90,16 +94,13 @@ func (s *Storage) GetEvent(ctx context.Context, Id int64) (sqlstorage.Event, err
 		&ev.EndDate,
 		&ev.EndTime)
 
-	if err != nil {
-		return ev, err
-	}
-	if err == sql.ErrNoRows {
+	if err.Error() == sql.ErrNoRows.Error() {
 		return ev, nil
 	} else if err != nil {
-		return ev, err
+		return ev, ErrConnection
 	}
 
-	return ev, err
+	return ev, ErrConnection
 }
 
 func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
@@ -107,8 +108,7 @@ func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
 		SELECT id, owner, title, descr, start_date, start_time, end_date, end_time FROM events
 	`)
 	if err != nil {
-		fmt.Println("query error:", err)
-		return nil, err
+		return nil, ErrConnection
 	}
 	defer rows.Close()
 
@@ -118,7 +118,7 @@ func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
 		var ev sqlstorage.Event
 
 		if err := rows.Scan(
-			&ev.Id,
+			&ev.ID,
 			&ev.Owner,
 			&ev.Title,
 			&ev.Descr,
@@ -127,7 +127,8 @@ func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
 			&ev.EndDate,
 			&ev.EndTime,
 		); err != nil {
-			return nil, err
+			s.l.Error("Get error", zap.String("query", rows.Err().Error()))
+			return nil, ErrConnection
 		}
 
 		events = append(events, ev)
@@ -135,12 +136,12 @@ func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
 	return events, rows.Err()
 }
 
-func (s *Storage) SetEvent(ctx context.Context, title string, descr string, start_date time.Time, start_time time.Time, end_date time.Time, end_time time.Time) error {
+func (s *Storage) SetEvent(ctx context.Context, title string, descr string, startDate time.Time, startTime time.Time, endDate time.Time, endTime time.Time) error {
 	query := `INSERT INTO events (title, descr, start_date, start_time, end_date, end_time)
 VALUES($1, $2, $3, $4, $5, $6)`
-	row, err := s.db.ExecContext(ctx, query, title, descr, start_date, start_time, end_date, end_time)
+	row, err := s.db.ExecContext(ctx, query, title, descr, startDate, startTime, endDate, endTime)
 	if err != nil {
-		return err
+		return ErrConnection
 	}
 	rowAffected, _ := row.RowsAffected()
 	log.Debug(strconv.FormatInt(rowAffected, 10))
@@ -151,15 +152,15 @@ func (s *Storage) CreateEvent(ctx context.Context, ev sqlstorage.Event) error {
 	owner := ev.Owner
 	title := ev.Title
 	descr := ev.Descr
-	start_date := ev.StartDate
-	start_time := ev.StartTime
-	end_date := ev.EndDate
-	end_time := ev.EndTime
+	startDate := ev.StartDate
+	startTime := ev.StartTime
+	endDate := ev.EndDate
+	endTime := ev.EndTime
 	query := `INSERT INTO events (title, descr, start_date, start_time, end_date, end_time)
 VALUES($1, $2, $3, $4, $5, $6, $7)`
-	row, err := s.db.ExecContext(ctx, query, owner, title, descr, start_date, start_time, end_date, end_time)
+	row, err := s.db.ExecContext(ctx, query, owner, title, descr, startDate, startTime, endDate, endTime)
 	if err != nil {
-		return err
+		return ErrConnection
 	}
 	rowAffected, _ := row.RowsAffected()
 	log.Debug(strconv.FormatInt(rowAffected, 10))

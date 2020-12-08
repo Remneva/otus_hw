@@ -8,7 +8,7 @@ import (
 
 func TestStorage(t *testing.T) {
 
-	t.Run("Whitespace ignoring", func(t *testing.T) {
+	t.Run("Invalid credentials error", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 

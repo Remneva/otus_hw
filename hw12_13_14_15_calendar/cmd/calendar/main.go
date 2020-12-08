@@ -1,3 +1,4 @@
+//nolint
 package main
 
 import (
@@ -11,14 +12,14 @@ import (
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
 )
 
 var config string
 
 func init() {
-	flag.StringVar(&config, "config", "/configs/config.toml", "Path to configuration file")
+	flag.StringVar(&config, "config", "config.toml", "Path to configuration file")
 }
 
 func main() {
@@ -40,6 +41,7 @@ func main() {
 	}
 	app, err := app.New(logg, storage)
 	if err != nil {
+		fmt.Println(err.Error())
 		logg.Fatal("failed to start app")
 	}
 	logg.Info("calendar is running...")
@@ -68,6 +70,5 @@ func main() {
 
 	if err := server.Start(ctx); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
-		os.Exit(1)
 	}
 }

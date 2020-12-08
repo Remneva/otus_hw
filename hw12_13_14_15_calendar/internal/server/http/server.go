@@ -1,13 +1,15 @@
+//nolint
 package internalhttp
 
 import (
 	"context"
 	"database/sql"
-	"go.uber.org/zap"
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/apex/log"
+	"go.uber.org/zap"
 )
 
 type MyHandler struct {
@@ -26,11 +28,11 @@ func NewServer(logger *zap.Logger, app Application) *Server {
 	handler := &MyHandler{l: logger}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/set", requestLogger(handler, handler.SetEvent))
-	mux.HandleFunc("/get", requestLogger(handler, handler.GetEvent))
-	mux.HandleFunc("/getAll", requestLogger(handler, handler.GetEvents))
-	mux.HandleFunc("/delete", requestLogger(handler, handler.DeleteEvent))
-	mux.HandleFunc("/update", requestLogger(handler, handler.UpdateEvent))
+	mux.HandleFunc("/set", requestLoggerMiddleware(handler, handler.SetEvent))
+	mux.HandleFunc("/get", requestLoggerMiddleware(handler, handler.GetEvent))
+	mux.HandleFunc("/getAll", requestLoggerMiddleware(handler, handler.GetEvents))
+	mux.HandleFunc("/delete", requestLoggerMiddleware(handler, handler.DeleteEvent))
+	mux.HandleFunc("/update", requestLoggerMiddleware(handler, handler.UpdateEvent))
 	server := &http.Server{
 		Addr:           ":8081",
 		Handler:        mux,
@@ -55,7 +57,7 @@ func (s *Server) Stop(ctx context.Context) error {
 	defer cancel()
 	err := s.Shutdown(ctx)
 	if err != nil {
-		return err
+		return errors.New("shutdown error")
 	}
 	return nil
 }

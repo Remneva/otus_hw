@@ -1,3 +1,4 @@
+//nolint
 package storage
 
 import (
@@ -9,7 +10,7 @@ import (
 var ErrNoSuchEvent = errors.New("no such event")
 
 type Event struct {
-	Id        int64
+	ID        int64
 	Owner     int64
 	Title     string
 	Descr     string
@@ -32,18 +33,18 @@ func (e *eventMap) Add(ev Event) error {
 	return nil
 }
 
-func (e *eventMap) Get(id int) (Event, bool, error) {
+func (e *eventMap) Get(id int) (Event, error) {
 	var ev Event
 	if _, ok := e.ev[id]; ok {
 		ev = e.ev[id]
-		return ev, true, nil
+		return ev, nil
 	}
-	return ev, false, ErrNoSuchEvent
+	return ev, ErrNoSuchEvent
 }
 
 type EventMap interface {
 	Add(ev Event) error
-	Get(id int) (Event, bool, error)
+	Get(id int) (Event, error)
 }
 
 func NewMap() EventMap {
