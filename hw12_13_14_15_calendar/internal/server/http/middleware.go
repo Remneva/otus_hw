@@ -1,4 +1,4 @@
-package internalhttp //nolint:golint,stylecheck
+package internalhttp
 
 import (
 	"context"

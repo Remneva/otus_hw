@@ -1,4 +1,4 @@
-package sqlstorage //nolint:golint,stylecheck
+package sqlstorage
 
 import (
 	"context"
