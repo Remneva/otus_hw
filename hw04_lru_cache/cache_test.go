@@ -49,8 +49,52 @@ func TestCache(t *testing.T) {
 		require.Nil(t, val)
 	})
 
-	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+	t.Run("Capacity limits logic", func(t *testing.T) {
+		c := NewCache(3)
+		c.Set("1", 1)
+		c.Set("2", 2)
+		c.Set("3", 3)
+		c.Set("4", 4)
+
+		_, actual := c.Get("1")
+		require.False(t, actual)
+		_, actual = c.Get("4")
+		require.True(t, actual)
+	})
+
+	t.Run("Seldom used items first out", func(t *testing.T) {
+		c := NewCache(3)
+		c.Set("aaa", 1)
+		c.Set("bbb", 2)
+		c.Set("ccc", 3)
+
+		c.Get("aaa")
+		c.Get("ccc")
+		c.Get("bbb")
+		c.Get("ccc")
+		c.Get("bbb")
+
+		c.Set("ddd", 4)
+
+		_, actual := c.Get("aaa")
+		require.False(t, actual)
+
+	})
+
+	t.Run("Purge queue logic", func(t *testing.T) {
+		c := NewCache(3)
+		c.Set("aaa", 1)
+		c.Set("bbb", 2)
+		c.Set("ccc", 3)
+
+		c.Clear()
+
+		_, actual := c.Get("aaa")
+		require.False(t, actual)
+		_, actual = c.Get("bbb")
+		require.False(t, actual)
+		_, actual = c.Get("ccc")
+		require.False(t, actual)
 	})
 }
 
