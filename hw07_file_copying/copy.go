@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"time"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 var (
@@ -15,7 +17,6 @@ var (
 )
 
 func Copy(fromPath string, toPath string, offset, limit int64) error {
-	time.Sleep(time.Second)
 	file, err := os.OpenFile(fromPath, os.O_RDWR, 0666)
 	if err != nil {
 		return ErrUnsupportedFile
@@ -23,7 +24,6 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	defer file.Close()
 	inf, _ := file.Stat()
 	buf := bufio.NewReaderSize(file, int(inf.Size()))
-
 	if int(offset) > buf.Size() {
 		return ErrOffsetExceedsFileSize
 	}
@@ -42,7 +42,13 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	if limit == 0 || limit > int64(buf.Size()) {
 		limit = int64(buf.Size())
 	}
-	_, err = io.CopyN(bw, buf, limit)
+
+	bar := pb.Full.Start64(limit)
+	barReader := bar.NewProxyReader(buf)
+	_, err = io.CopyN(bw, barReader, limit)
+	bar.Finish()
+
+	time.Sleep(2 * time.Second)
 	if err != nil {
 		return ErrUnsupportedFile
 	}
