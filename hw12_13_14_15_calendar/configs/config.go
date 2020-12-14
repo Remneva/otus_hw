@@ -11,8 +11,6 @@ import (
 // Организация конфига в main принуждает нас сужать API компонентов, использовать
 // при их конструировании только необходимые параметры, а также уменьшает вероятность циклической зависимости.
 
-var ErrConfig = errors.New("cant`t read conf.toml file")
-
 type Config struct {
 	Logger LoggerConf
 	PSQL   PSQLConfig

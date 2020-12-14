@@ -16,15 +16,12 @@ func TestMap(t *testing.T) {
 	var events = []Event{ev1, ev2}
 
 	t.Run("Events add to map", func(t *testing.T) {
-		//var wg sync.WaitGroup
 		wg := sync.WaitGroup{}
 		e := NewMap()
 		wg.Add(2)
 
 		for _, ev := range events {
-			//		wg.Add(1)
 			go func(ev Event) {
-				//		defer wg.Done()
 				e.Add(ev)
 				fmt.Println("done")
 				wg.Done()
@@ -37,6 +34,7 @@ func TestMap(t *testing.T) {
 		actual2, err2 := e.Get(2)
 		fmt.Println("err1: ", err1)
 		fmt.Println("err2: ", err2)
+
 		require.NoError(t, err1)
 		require.NoError(t, err2)
 		require.Contains(t, actual1.Title, "Title")

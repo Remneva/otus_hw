@@ -44,7 +44,10 @@ func (s *Storage) DeleteEvent(ctx context.Context, id int64) error {
 		s.l.Error("Error", zap.String("Connection", err.Error()))
 		return errors.Wrap(err, "Database query failed")
 	}
-	rowAffected, _ := row.RowsAffected()
+	rowAffected, err := row.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "Database query failed")
+	}
 	log.Debug(strconv.FormatInt(rowAffected, 10))
 	return nil
 }
@@ -153,7 +156,10 @@ VALUES($1, $2, $3, $4, $5, $6, $7)`
 	if err != nil {
 		return errors.Wrap(err, "Database query failed")
 	}
-	rowAffected, _ := row.RowsAffected()
+	rowAffected, err := row.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "Database query failed")
+	}
 	log.Debug(strconv.FormatInt(rowAffected, 10))
 	return nil
 }

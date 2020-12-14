@@ -14,10 +14,11 @@ import (
 )
 
 type App struct {
-	r      sqlstorage.BaseStorage
-	l      *zap.Logger
+	Repo   sqlstorage.BaseStorage
+	log    *zap.Logger
 	server *internalhttp.Server
 	grpc   *grpc.Server
+	Hand   *internalhttp.MyHandler
 }
 
 type Logger interface {
@@ -30,30 +31,32 @@ type Storage interface {
 
 // вывод данных из базы оставила пока для проверки
 func (a *App) Run(ctx context.Context) error {
-	events, err := a.r.GetEvents(ctx)
+	events, err := a.Repo.GetEvents(ctx)
 	if err != nil {
 		return errors.New("select query error")
 	}
 	for _, ev := range events {
-		a.l.Info("ev: ", zap.String("Nahuatl name", ev.Title))
+		a.log.Info("ev: ", zap.String("Nahuatl name", ev.Title))
 	}
 	wg := sync.WaitGroup{}
 	wg.Add(2)
+
 	go func() {
-		a.server = internalhttp.NewServer(a.l)
+		a.log.Info("http is running...")
+		a.server = internalhttp.NewServer(a.log)
 		if err := a.server.Start(ctx); err != nil {
-			a.l.Error("failed to start http server: " + err.Error())
+			a.log.Error("failed to start http server: " + err.Error())
 			os.Exit(1)
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		a.grpc, err = internalgrpc.NewServer(a.l)
+		a.log.Info("grpc is running...")
+		a.grpc, err = internalgrpc.NewServer(a.log)
 		if err != nil {
-			a.l.Error("failed to start grpc server: " + err.Error())
+			a.log.Error("failed to start grpc server: " + err.Error())
 		}
-		a.l.Info("grpc is running...")
 		wg.Done()
 	}()
 
@@ -62,16 +65,16 @@ func (a *App) Run(ctx context.Context) error {
 }
 
 func (a *App) httpServerNew() *internalhttp.Server {
-	return internalhttp.NewServer(a.l)
+	return internalhttp.NewServer(a.log)
 }
 
 func New(logger *zap.Logger, r sqlstorage.BaseStorage) (*App, error) {
-	return &App{r: r, l: logger}, nil
+	return &App{Repo: r, log: logger}, nil
 }
 
 func (a *App) Stop(ctx context.Context) error {
 	if err := a.Stop(ctx); err != nil {
-		a.l.Error("failed to stop http server: " + err.Error())
+		a.log.Error("failed to stop http server: " + err.Error())
 		return errors.Wrap(err, "failed to stop http server")
 	}
 	return nil

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
@@ -38,18 +37,16 @@ func main() {
 	storage := new(memorystorage.Storage)
 
 	if err := storage.Connect(ctx, config.PSQL.DSN); err != nil {
-		logg.Fatal("fail connection")
+		log.Fatal("fail connection")
 	}
 	application, err := app.New(logg, storage)
 	if err != nil {
-		fmt.Println(err.Error())
 		logg.Fatal("failed to start application")
 	}
 
 	logg.Info("calendar is running...")
 	err = application.Run(ctx)
 	if err != nil {
-		fmt.Println(err)
 		logg.Fatal("failed to start application")
 	}
 
