@@ -1,4 +1,4 @@
-package internalhttp //nolint:golint,stylecheck
+package internalhttp
 
 import (
 	"context"
@@ -21,7 +21,7 @@ type Server struct {
 type Application interface {
 }
 
-func NewServer(logger *zap.Logger, app Application) *Server {
+func NewServer(logger *zap.Logger) *Server {
 	handler := &MyHandler{l: logger}
 
 	mux := http.NewServeMux()

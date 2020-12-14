@@ -1,18 +1,17 @@
-package main //nolint:golint,stylecheck
+package main
 
 import (
 	"context"
 	"flag"
 	"fmt"
-	"os"
-	"os/signal"
-	"time"
-
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/apex/log"
+	"os"
+	"os/signal"
+	"time"
 )
 
 var config string
@@ -32,24 +31,27 @@ func main() {
 	defer cancel()
 
 	config, _ := configs.Read(config)
-	logg := logger.NewLogger(config.Logger.Level, config.Logger.Path)
+	logg, err := logger.NewLogger(config.Logger.Level, config.Logger.Path)
+	if err != nil {
+		log.Fatal("failed to create logger")
+	}
 	storage := new(memorystorage.Storage)
 
 	if err := storage.Connect(ctx, config.PSQL.DSN); err != nil {
-		fmt.Println(err)
+		logg.Fatal("fail connection")
 	}
-	app, err := app.New(logg, storage)
+	application, err := app.New(logg, storage)
 	if err != nil {
 		fmt.Println(err.Error())
-		logg.Fatal("failed to start app")
+		logg.Fatal("failed to start application")
 	}
+
 	logg.Info("calendar is running...")
-	err = app.Run(ctx)
+	err = application.Run(ctx)
 	if err != nil {
-		fmt.Println("run error: ", err)
+		fmt.Println(err)
+		logg.Fatal("failed to start application")
 	}
-	server := internalhttp.NewServer(logg, app)
-	defer cancel()
 
 	go func() {
 		signals := make(chan os.Signal, 1)
@@ -62,12 +64,9 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
-		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
+		err := application.Stop(ctx)
+		if err != nil {
+			logg.Error(err.Error())
 		}
 	}()
-
-	if err := server.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-	}
 }

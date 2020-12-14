@@ -3,7 +3,6 @@ package storage
 
 import (
 	"errors"
-	"sync"
 	"time"
 )
 
@@ -23,7 +22,6 @@ type Event struct {
 var id int
 
 type eventMap struct {
-	mu sync.Mutex
 	ev map[int]Event
 }
 

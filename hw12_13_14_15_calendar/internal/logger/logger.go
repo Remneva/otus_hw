@@ -1,8 +1,7 @@
 package logger
 
 import (
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
 	"os"
 	"time"
 
@@ -11,12 +10,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var ErrLogger = errors.New("logger creation error")
-
-func NewLogger(level zapcore.Level, outputfile string) *zap.Logger {
+func NewLogger(level zapcore.Level, outputfile string) (*zap.Logger, error) {
 	err := mkFile(outputfile)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 	cfg := zap.NewProductionConfig()
 	cfg.EncoderConfig.EncodeTime = syslogTimeEncoder
@@ -27,10 +24,10 @@ func NewLogger(level zapcore.Level, outputfile string) *zap.Logger {
 
 	logger, err := cfg.Build()
 	if err != nil {
-		fmt.Println("build error: ", err)
+		return nil, errors.Wrap(err, "Logger build failed")
 	}
 	logger.Info("This should have a syslog style timestamp")
-	return logger
+	return logger, nil
 }
 
 func syslogTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
@@ -46,11 +43,11 @@ func mkFile(path string) error {
 	if !existFile {
 		err := os.Mkdir("/tmp/tmpdir", 0755)
 		if err != nil {
-			return ErrLogger
+			return errors.Wrap(err, "Mkdir failed")
 		}
 		tmpfile, err := safefile.Create(path, 0755)
 		if err != nil {
-			return ErrLogger
+			return errors.Wrap(err, "Create tmpfile failed")
 		}
 		defer tmpfile.Close()
 		return nil

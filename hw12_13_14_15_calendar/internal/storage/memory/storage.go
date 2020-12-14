@@ -3,7 +3,7 @@ package memorystorage
 import (
 	"context"
 	"database/sql"
-	"errors"
+	"github.com/pkg/errors"
 	"strconv"
 	"time"
 
@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var ErrConnection = errors.New("connection error")
 var _ sqlstorage.BaseStorage = (*Storage)(nil)
 
 type Storage struct {
@@ -28,9 +27,8 @@ func (s *Storage) Connect(ctx context.Context, dsn string) (err error) {
 	s.db, err = sql.Open("pgx", dsn)
 	if err != nil {
 		s.l.Error("Error", zap.String("Driver", err.Error()))
-		return ErrConnection
+		return err
 	}
-	s.db.Stats()
 	return s.db.PingContext(ctx)
 }
 
@@ -44,7 +42,7 @@ func (s *Storage) DeleteEvent(ctx context.Context, id int64) error {
 		`, id)
 	if err != nil {
 		s.l.Error("Error", zap.String("Connection", err.Error()))
-		return ErrConnection
+		return errors.Wrap(err, "Database query failed")
 	}
 	rowAffected, _ := row.RowsAffected()
 	log.Debug(strconv.FormatInt(rowAffected, 10))
@@ -59,7 +57,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, fieldToChange string, newValu
 		where ID = $3
 		`, fieldToChange, newValue, id)
 	if err != nil {
-		return ev, ErrConnection
+		return ev, errors.Wrap(err, "Database query failed")
 	}
 	defer row.Close()
 	err = row.Scan(
@@ -73,7 +71,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, fieldToChange string, newValu
 
 	if err != nil {
 		s.l.Error("Update error", zap.String("query", row.Err().Error()))
-		return ev, ErrConnection
+		return ev, errors.Wrap(err, "Database query failed")
 	}
 	return ev, row.Err()
 }
@@ -92,12 +90,12 @@ func (s *Storage) GetEvent(ctx context.Context, id int64) (sqlstorage.Event, err
 		&ev.EndTime)
 
 	if err.Error() == sql.ErrNoRows.Error() {
-		return ev, nil
+		return ev, errors.New("event doesn't exist")
 	} else if err != nil {
-		return ev, ErrConnection
+		return ev, errors.Wrap(err, "Database query failed")
 	}
 
-	return ev, ErrConnection
+	return ev, nil
 }
 
 func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
@@ -105,7 +103,7 @@ func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
 		SELECT id, owner, title, descr, start_date, start_time, end_date, end_time FROM events
 	`)
 	if err != nil {
-		return nil, ErrConnection
+		return nil, errors.Wrap(err, "Database query failed")
 	}
 	defer rows.Close()
 
@@ -124,8 +122,8 @@ func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
 			&ev.EndDate,
 			&ev.EndTime,
 		); err != nil {
-			s.l.Error("Get error", zap.String("query", rows.Err().Error()))
-			return nil, ErrConnection
+			s.l.Error("Get event error", zap.String("query", rows.Err().Error()))
+			return nil, errors.Wrap(err, "Database query failed")
 		}
 
 		events = append(events, ev)
@@ -138,26 +136,22 @@ func (s *Storage) SetEvent(ctx context.Context, title string, descr string, star
 VALUES($1, $2, $3, $4, $5, $6)`
 	row, err := s.db.ExecContext(ctx, query, title, descr, startDate, startTime, endDate, endTime)
 	if err != nil {
-		return ErrConnection
+		return errors.Wrap(err, "Database query failed")
 	}
-	rowAffected, _ := row.RowsAffected()
+	rowAffected, err := row.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "Database query failed")
+	}
 	log.Debug(strconv.FormatInt(rowAffected, 10))
 	return nil
 }
 
 func (s *Storage) CreateEvent(ctx context.Context, ev sqlstorage.Event) error {
-	owner := ev.Owner
-	title := ev.Title
-	descr := ev.Descr
-	startDate := ev.StartDate
-	startTime := ev.StartTime
-	endDate := ev.EndDate
-	endTime := ev.EndTime
 	query := `INSERT INTO events (title, descr, start_date, start_time, end_date, end_time)
 VALUES($1, $2, $3, $4, $5, $6, $7)`
-	row, err := s.db.ExecContext(ctx, query, owner, title, descr, startDate, startTime, endDate, endTime)
+	row, err := s.db.ExecContext(ctx, query, ev.Owner, ev.Title, ev.Descr, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime)
 	if err != nil {
-		return ErrConnection
+		return errors.Wrap(err, "Database query failed")
 	}
 	rowAffected, _ := row.RowsAffected()
 	log.Debug(strconv.FormatInt(rowAffected, 10))
