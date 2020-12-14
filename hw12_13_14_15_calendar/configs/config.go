@@ -1,10 +1,9 @@
 package configs
 
 import (
-	"errors"
 	"fmt"
-
 	"github.com/BurntSushi/toml"
+	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -31,7 +30,7 @@ type PSQLConfig struct {
 func NewConfig(fpath string) (Config, error) {
 	_, err := Read(fpath)
 	if err != nil {
-		return Config{}, err
+		return Config{}, errors.Wrap(err, "Read config failed")
 	}
 	return Config{}, nil
 }
@@ -39,7 +38,7 @@ func NewConfig(fpath string) (Config, error) {
 func Read(fpath string) (c Config, err error) {
 	_, err = toml.DecodeFile(fpath, &c)
 	if err != nil {
-		return Config{}, err
+		return Config{}, errors.Wrap(err, "DecodeFile failed")
 	}
 	fmt.Println("logger: ", &c.Logger.Level)
 	fmt.Println("path: ", &c.Logger.Path)

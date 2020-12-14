@@ -2,9 +2,9 @@ package app
 
 import (
 	"context"
-	"errors"
 	internalgrpc "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"os"
 	"sync"
@@ -72,6 +72,7 @@ func New(logger *zap.Logger, r sqlstorage.BaseStorage) (*App, error) {
 func (a *App) Stop(ctx context.Context) error {
 	if err := a.Stop(ctx); err != nil {
 		a.l.Error("failed to stop http server: " + err.Error())
+		return errors.Wrap(err, "failed to stop http server")
 	}
 	return nil
 }
