@@ -11,6 +11,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.16.0
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0
 )

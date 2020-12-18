@@ -4,15 +4,16 @@ package event;
 
 option go_package = ".;pb";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 message Event {
   int64 id = 1;
   int64 owner = 2;
   string title = 3;
   string description = 4;
-  Date startdate = 5;
+  string startdate = 5;
   google.protobuf.Timestamp starttime = 6;
-  Date enddate = 7;
+  string enddate = 7;
   google.protobuf.Timestamp endtime = 8;
 }
 
@@ -34,6 +35,9 @@ service Calendar {
   }
 
   rpc UpdateEvent(Event) returns (Id){
+  }
+
+  rpc DeleteEvent (Id) returns (google.protobuf.Empty){
   }
 }
 

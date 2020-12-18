@@ -3,6 +3,6 @@ dsn = "host=localhost port=5432 user=mary password=mary dbname=exampledb sslmode
 [logger]
 level = "INFO"
 path = "/tmp/tmpdir/calendar.log"
-
-# TODO
-# ...
+[port]
+http = ":8082"
+grpc = "localhost:50051"

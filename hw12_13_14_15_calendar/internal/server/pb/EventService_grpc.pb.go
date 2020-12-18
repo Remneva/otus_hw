@@ -7,6 +7,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -20,6 +21,7 @@ type CalendarClient interface {
 	GetEvent(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Event, error)
 	SetEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Id, error)
 	UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Id, error)
+	DeleteEvent(ctx context.Context, in *Id, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type calendarClient struct {
@@ -57,6 +59,15 @@ func (c *calendarClient) UpdateEvent(ctx context.Context, in *Event, opts ...grp
 	return out, nil
 }
 
+func (c *calendarClient) DeleteEvent(ctx context.Context, in *Id, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/event.Calendar/DeleteEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CalendarServer is the server API for Calendar service.
 // All implementations must embed UnimplementedCalendarServer
 // for forward compatibility
@@ -64,6 +75,7 @@ type CalendarServer interface {
 	GetEvent(context.Context, *Id) (*Event, error)
 	SetEvent(context.Context, *Event) (*Id, error)
 	UpdateEvent(context.Context, *Event) (*Id, error)
+	DeleteEvent(context.Context, *Id) (*emptypb.Empty, error)
 	mustEmbedUnimplementedCalendarServer()
 }
 
@@ -79,6 +91,9 @@ func (UnimplementedCalendarServer) SetEvent(context.Context, *Event) (*Id, error
 }
 func (UnimplementedCalendarServer) UpdateEvent(context.Context, *Event) (*Id, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateEvent not implemented")
+}
+func (UnimplementedCalendarServer) DeleteEvent(context.Context, *Id) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteEvent not implemented")
 }
 func (UnimplementedCalendarServer) mustEmbedUnimplementedCalendarServer() {}
 
@@ -147,6 +162,24 @@ func _Calendar_UpdateEvent_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Calendar_DeleteEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Id)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CalendarServer).DeleteEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/event.Calendar/DeleteEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CalendarServer).DeleteEvent(ctx, req.(*Id))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Calendar_ServiceDesc is the grpc.ServiceDesc for Calendar service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -165,6 +198,10 @@ var Calendar_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateEvent",
 			Handler:    _Calendar_UpdateEvent_Handler,
+		},
+		{
+			MethodName: "DeleteEvent",
+			Handler:    _Calendar_DeleteEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

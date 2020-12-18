@@ -1,13 +1,13 @@
 -- +goose Up
 CREATE TABLE events (
     id serial primary key,
-    owner bigint,
+    owner integer,
     title text,
     descr text,
     start_date date not null,
-    start_time time,
+    start_time timestamp not null default now(),
     end_date date not null,
-    end_time time
+    end_time timestamp
 
 
 );

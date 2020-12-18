@@ -1,11 +1,11 @@
 package logger
 
 import (
-	"github.com/pkg/errors"
 	"os"
 	"time"
 
 	"github.com/dchest/safefile"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -26,7 +26,6 @@ func NewLogger(level zapcore.Level, outputfile string) (*zap.Logger, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Logger build failed")
 	}
-	logger.Info("This should have a syslog style timestamp")
 	return logger, nil
 }
 
