@@ -44,7 +44,7 @@ func TestCopy(t *testing.T) {
 		if err != nil {
 			log.Println(err)
 		}
-		require.EqualError(t, err, "filesize less than limit")
+		require.NoError(t, err)
 	})
 
 	t.Run("Success copy", func(t *testing.T) {

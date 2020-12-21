@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"io"
+	"log"
 	"os"
 
 	"github.com/cheggaaa/pb/v3"
@@ -41,7 +42,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	_, err = io.CopyN(newFile, barReader, limit)
 	bar.Finish()
 	if err != nil {
-		return errors.New("filesize less than limit")
+		log.Println(err)
 	}
 	return nil
 }
