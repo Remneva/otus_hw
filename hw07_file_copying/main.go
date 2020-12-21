@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 )
 
 var (
@@ -22,5 +23,6 @@ func main() {
 	err := Copy(from, to, offset, limit)
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 }

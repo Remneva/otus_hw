@@ -2,39 +2,35 @@ package main
 
 import (
 	"bufio"
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
+
 	"io"
 	"os"
 
 	"github.com/cheggaaa/pb/v3"
 )
 
-var (
-	ErrUnsupportedFile       = errors.New("unsupported file")
-	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
-)
-
 func Copy(fromPath string, toPath string, offset, limit int64) error {
 	file, err := os.OpenFile(fromPath, os.O_RDWR, 0666)
 	if err != nil {
-		return ErrUnsupportedFile
+		return errors.Wrap(err, "unsupported file")
 	}
 	defer file.Close()
-	inf, _ := file.Stat()
+	inf, err := file.Stat()
+	if err != nil {
+		return errors.Wrap(err, "getting stat error")
+	}
 	buf := bufio.NewReaderSize(file, int(inf.Size()))
 	if offset > inf.Size() {
-		return ErrOffsetExceedsFileSize
+		return errors.New("offset exceeds file size")
 	}
-
 	_, err = file.Seek(offset, io.SeekStart)
-
 	if err != nil {
-		return fmt.Errorf("failed to set offset: %w", err)
+		return errors.Wrap(err, "failed to set offset")
 	}
 	newFile, err := os.Create(toPath)
 	if err != nil {
-		return fmt.Errorf("failed to trying create file: %w", err)
+		return errors.Wrap(err, "failed to trying create file")
 	}
 	defer newFile.Close()
 
@@ -45,9 +41,8 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	barReader := bar.NewProxyReader(buf)
 	_, err = io.CopyN(newFile, barReader, limit)
 	bar.Finish()
-
 	if err != nil {
-		return ErrUnsupportedFile
+		return errors.Wrap(err, "copy file error")
 	}
 	return nil
 }
