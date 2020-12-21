@@ -2,12 +2,11 @@ package main
 
 import (
 	"bufio"
-	"github.com/pkg/errors"
-
 	"io"
 	"os"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/pkg/errors"
 )
 
 func Copy(fromPath string, toPath string, offset, limit int64) error {

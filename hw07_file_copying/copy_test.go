@@ -71,7 +71,6 @@ func TestCopy(t *testing.T) {
 		err = Copy(tmpfile.Name(), "testdata/expected.txt", 0, 0)
 		if err != nil {
 			log.Println(err)
-			require.NoError(t, err)
 		}
 		file, err := ioutil.ReadFile("testdata/expected.txt")
 		if err != nil {
