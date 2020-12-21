@@ -39,12 +39,12 @@ func TestCopy(t *testing.T) {
 		require.EqualError(t, err, "unsupported file: open dev/urandom: no such file or directory")
 	})
 
-	t.Run("The infinite file unsupported", func(t *testing.T) {
+	t.Run("Filesize less than limit", func(t *testing.T) {
 		err := Copy("/dev/null", "testdata/expected.txt", int64(0), int64(0))
 		if err != nil {
 			log.Println(err)
 		}
-		require.EqualError(t, err, "copy file error: EOF")
+		require.EqualError(t, err, "filesize less than limit")
 	})
 
 	t.Run("Success copy", func(t *testing.T) {

@@ -41,7 +41,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 	_, err = io.CopyN(newFile, barReader, limit)
 	bar.Finish()
 	if err != nil {
-		return errors.New("filesize less than limit ")
+		return errors.New("filesize less than limit")
 	}
 	return nil
 }
