@@ -19,6 +19,19 @@ type Event struct {
 	EndTime   string
 }
 
+type EventMap interface {
+	Add(ev Event) error
+	Update(ev Event) error
+	Get(id int) (Event, error)
+	Delete(id int) error
+}
+
+func NewMap() EventMap {
+	eve := &eventMap{}
+	eve.ev = make(map[int]Event)
+	return eve
+}
+
 var id int
 
 type eventMap struct {
@@ -31,6 +44,14 @@ func (e *eventMap) Add(ev Event) error {
 	return nil
 }
 
+func (e *eventMap) Update(ev Event) error {
+	if _, ok := e.ev[int(ev.ID)]; ok {
+		ev = e.ev[id]
+		return nil
+	}
+	return ErrNoSuchEvent
+}
+
 func (e *eventMap) Get(id int) (Event, error) {
 	var ev Event
 	if _, ok := e.ev[id]; ok {
@@ -40,13 +61,10 @@ func (e *eventMap) Get(id int) (Event, error) {
 	return ev, ErrNoSuchEvent
 }
 
-type EventMap interface {
-	Add(ev Event) error
-	Get(id int) (Event, error)
-}
-
-func NewMap() EventMap {
-	eve := &eventMap{}
-	eve.ev = make(map[int]Event)
-	return eve
+func (e *eventMap) Delete(id int) error {
+	if _, ok := e.ev[id]; ok {
+		delete(e.ev, id)
+		return nil
+	}
+	return ErrNoSuchEvent
 }

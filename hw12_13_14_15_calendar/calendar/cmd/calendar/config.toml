@@ -1,0 +1,15 @@
+[psql]
+dsn = "host=localhost port=5432 user=mary password=mary dbname=exampledb sslmode=disable"
+[logger]
+level = "INFO"
+path = "/tmp/tmpdir/calendar.log"
+[port]
+http = ":8082"
+grpc = "localhost:50051"
+[amqp]
+uri = "amqp://guest:guest@localhost:5672/"
+exchangeName = "SecondEx"
+exchangeType = "direct"
+routingKey = "test-key"
+body = "foobar"
+reliable = true

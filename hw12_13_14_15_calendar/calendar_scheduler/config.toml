@@ -6,3 +6,10 @@ path = "/tmp/tmpdir/calendar.log"
 [port]
 http = ":8082"
 grpc = "localhost:50051"
+[amqp]
+uri = "amqp://guest:guest@localhost:5672/"
+exchangeName = "SecondEx"
+exchangeType = "direct"
+routingKey = "keyA"
+body = "foobar"
+reliable = true

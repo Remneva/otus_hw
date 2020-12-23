@@ -14,10 +14,11 @@ var _ sqlstorage.BaseStorage = (*Storage)(nil)
 type Storage struct {
 	db *sql.DB
 	l  *zap.Logger
+	s  sqlstorage.EventsStorage
 }
 
-func New() *Storage {
-	return &Storage{}
+func New(s sqlstorage.EventsStorage) *Storage {
+	return &Storage{s: s}
 }
 
 func (s *Storage) Connect(ctx context.Context, dsn string, l *zap.Logger) (err error) {
@@ -110,19 +111,35 @@ func (s *Storage) GetEvents(ctx context.Context) ([]sqlstorage.Event, error) {
 	return events, rows.Err()
 }
 
-func (s *Storage) SetEvent(ctx context.Context, ev sqlstorage.Event) (int64, error) {
-	query := `INSERT INTO events (owner, title, description, start_date, start_time, end_date, end_time)
-VALUES($1, $2, $3, $4, $5, $6, $7) `
-	_, err := s.db.ExecContext(ctx, query, ev.Owner, ev.Title, ev.Description, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime)
+func (s *Storage) AddEvent(ctx context.Context, ev sqlstorage.Event) (int64, error) {
+	err := s.Insert(ctx, ev)
 	if err != nil {
 		return 0, errors.Wrap(err, "Database query failed")
 	}
-	var id int64
-	err = s.db.QueryRowContext(ctx, `
-		SELECT id FROM events ORDER BY id DESC LIMIT 1`).Scan(&id)
+	id, err := s.GetLastId(ctx)
 	if err != nil {
 		return 0, errors.Wrap(err, "Getting the last id error")
 	}
 	s.l.Info("Event Created", zap.Int64("id", id))
+	return id, nil
+}
+
+func (s *Storage) Insert(ctx context.Context, ev sqlstorage.Event) error {
+	query := `INSERT INTO events (owner, title, description, start_date, start_time, end_date, end_time)
+VALUES($1, $2, $3, $4, $5, $6, $7)`
+	_, err := s.db.ExecContext(ctx, query, ev.Owner, ev.Title, ev.Description, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime)
+	if err != nil {
+		return errors.Wrap(err, "Database query failed")
+	}
+	return nil
+}
+
+func (s *Storage) GetLastId(ctx context.Context) (int64, error) {
+	var id int64
+	err := s.db.QueryRowContext(ctx, `
+		SELECT id FROM events ORDER BY id DESC LIMIT 1`).Scan(&id)
+	if err != nil {
+		return 0, errors.Wrap(err, "Getting the last id error")
+	}
 	return id, nil
 }

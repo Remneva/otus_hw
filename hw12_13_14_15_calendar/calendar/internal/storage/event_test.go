@@ -39,6 +39,11 @@ func TestMap(t *testing.T) {
 		require.NoError(t, err2)
 		require.Contains(t, actual1.Title, "Title")
 		require.Contains(t, actual2.Title, "Title")
+
+		err := e.Delete(int(ev1.ID))
+		if err != nil {
+			require.NoError(t, err)
+		}
 	})
 
 	t.Run("No such event in map", func(t *testing.T) {

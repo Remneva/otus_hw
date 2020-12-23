@@ -305,11 +305,11 @@ var file_EventService_proto_depIdxs = []int32{
 	3, // 0: event.Event.starttime:type_name -> google.protobuf.Timestamp
 	3, // 1: event.Event.endtime:type_name -> google.protobuf.Timestamp
 	1, // 2: event.Calendar.GetEvent:input_type -> event.ID
-	0, // 3: event.Calendar.SetEvent:input_type -> event.Event
+	0, // 3: event.Calendar.AddEvent:input_type -> event.Event
 	0, // 4: event.Calendar.UpdateEvent:input_type -> event.Event
 	1, // 5: event.Calendar.DeleteEvent:input_type -> event.ID
 	0, // 6: event.Calendar.GetEvent:output_type -> event.Event
-	1, // 7: event.Calendar.SetEvent:output_type -> event.ID
+	1, // 7: event.Calendar.AddEvent:output_type -> event.ID
 	1, // 8: event.Calendar.UpdateEvent:output_type -> event.ID
 	4, // 9: event.Calendar.DeleteEvent:output_type -> google.protobuf.Empty
 	6, // [6:10] is the sub-list for method output_type

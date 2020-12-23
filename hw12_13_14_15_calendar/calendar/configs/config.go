@@ -12,6 +12,7 @@ type Config struct {
 	Logger LoggerConfig
 	PSQL   PSQLConfig
 	Port   PortConfig
+	AMQP   AmqpConfig
 }
 
 type LoggerConfig struct {
@@ -28,6 +29,15 @@ type PortConfig struct {
 	Grpc string
 }
 
+type AmqpConfig struct {
+	Uri          string
+	ExchangeName string
+	ExchangeType string
+	RoutingKey   string
+	Body         string
+	Reliable     bool
+}
+
 func Read(path string) (c Config, err error) {
 	_, err = toml.DecodeFile(path, &c)
 	if err != nil {
@@ -38,5 +48,11 @@ func Read(path string) (c Config, err error) {
 	fmt.Println("path: ", c.Logger.Path)
 	fmt.Println("port http: ", c.Port.HTTP)
 	fmt.Println("port grpc: ", c.Port.Grpc)
+	fmt.Println("Uri: ", c.AMQP.Uri)
+	fmt.Println("ExchangeName: ", c.AMQP.ExchangeName)
+	fmt.Println("ExchangeType: ", c.AMQP.ExchangeType)
+	fmt.Println("RoutingKey: ", c.AMQP.RoutingKey)
+	fmt.Println("Body: ", c.AMQP.Body)
+	fmt.Println("Reliable: ", c.AMQP.Reliable)
 	return
 }

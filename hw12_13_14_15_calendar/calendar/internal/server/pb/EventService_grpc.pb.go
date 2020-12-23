@@ -43,7 +43,7 @@ func (c *calendarClient) GetEvent(ctx context.Context, in *Id, opts ...grpc.Call
 
 func (c *calendarClient) SetEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Id, error) {
 	out := new(Id)
-	err := c.cc.Invoke(ctx, "/event.Calendar/SetEvent", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/event.Calendar/AddEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (UnimplementedCalendarServer) GetEvent(context.Context, *Id) (*Event, error
 	return nil, status.Errorf(codes.Unimplemented, "method GetEvent not implemented")
 }
 func (UnimplementedCalendarServer) SetEvent(context.Context, *Event) (*Id, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetEvent not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method AddEvent not implemented")
 }
 func (UnimplementedCalendarServer) UpdateEvent(context.Context, *Event) (*Id, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateEvent not implemented")
@@ -136,7 +136,7 @@ func _Calendar_SetEvent_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/event.Calendar/SetEvent",
+		FullMethod: "/event.Calendar/AddEvent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CalendarServer).SetEvent(ctx, req.(*Event))
@@ -192,7 +192,7 @@ var Calendar_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Calendar_GetEvent_Handler,
 		},
 		{
-			MethodName: "SetEvent",
+			MethodName: "AddEvent",
 			Handler:    _Calendar_SetEvent_Handler,
 		},
 		{
