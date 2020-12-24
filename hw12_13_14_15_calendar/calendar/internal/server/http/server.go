@@ -89,7 +89,7 @@ func (m *MyHandler) SetEvent(resp http.ResponseWriter, req *http.Request) {
 	eve.StartTime = rb.StartTime
 	eve.EndTime = rb.EndTime
 
-	id, err := m.app.Repo.SetEvent(m.ctx, eve)
+	id, err := m.app.Repo.AddEvent(m.ctx, eve)
 
 	if err != nil {
 		m.app.Log.Info("BadRequest", zap.String("error", err.Error()))

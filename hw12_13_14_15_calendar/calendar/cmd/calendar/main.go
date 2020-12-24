@@ -41,6 +41,9 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to create logger")
 	}
+
+	//	fmt.Printf("logger %w", logg)
+
 	storage := new(memorystorage.Storage)
 	if err := storage.Connect(ctx, config.PSQL.DSN, logg); err != nil {
 		log.Fatal("fail connection")

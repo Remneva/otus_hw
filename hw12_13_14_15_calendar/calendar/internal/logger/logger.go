@@ -13,7 +13,7 @@ import (
 func NewLogger(level zapcore.Level, outputfile string) (*zap.Logger, error) {
 	err := mkFile(outputfile)
 	if err != nil {
-		return nil, nil
+		return nil, errors.New("Error file creating")
 	}
 	cfg := zap.NewProductionConfig()
 	cfg.EncoderConfig.EncodeTime = syslogTimeEncoder

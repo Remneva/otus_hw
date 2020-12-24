@@ -100,7 +100,7 @@ func (s *Service) SetEvent(ctx context.Context, req *pb.Event) (*pb.Id, error) {
 	eve.StartTime, _ = ptypes.Timestamp(req.Starttime)
 	eve.StartTime, _ = ptypes.Timestamp(req.Endtime)
 
-	id, err := s.app.Repo.SetEvent(ctx, eve)
+	id, err := s.app.Repo.AddEvent(ctx, eve)
 	if err != nil {
 		s.app.Log.Info("Create Event", zap.String("error", err.Error()))
 		return nil, nil

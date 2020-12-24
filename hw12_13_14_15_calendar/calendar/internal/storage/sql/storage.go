@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:generate mockgen -destination=mock_db_test.go -package=sqlstorage . BaseStorage
+//go:generate mockgen -destination=mock_db_test.go -package=sqlstorage . EventsStorage
 
 type BaseStorage interface {
 	Connect(ctx context.Context, dsn string, l *zap.Logger) error
@@ -23,8 +23,8 @@ type EventsStorage interface {
 	AddEvent(ctx context.Context, ev Event) (int64, error)
 	DeleteEvent(ctx context.Context, ID int64) error
 	UpdateEvent(ctx context.Context, ev Event) error
-	Insert(ctx context.Context, ev Event) error
-	GetLastId(ctx context.Context) (int64, error)
+	//Insert(ctx context.Context, ev Event) error
+	//GetLastId(ctx context.Context) (int64, error)
 }
 
 type Event struct {

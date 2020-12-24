@@ -8,7 +8,7 @@ import (
 )
 
 type App struct {
-	Repo sqlstorage.BaseStorage
+	Repo sqlstorage.EventsStorage
 	Log  *zap.Logger
 }
 
