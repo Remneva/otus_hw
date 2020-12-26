@@ -45,7 +45,7 @@ func TestMap(t *testing.T) {
 		require.Contains(t, actual1.Title, "Title")
 		require.Contains(t, actual2.Title, "Title")
 
-		err := e.DeleteEvent(ctx, int64(int(ev1.ID)))
+		err := e.DeleteEvent(ctx, 1)
 		if err != nil {
 			require.NoError(t, err)
 		}

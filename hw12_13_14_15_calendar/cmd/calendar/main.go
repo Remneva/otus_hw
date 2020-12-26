@@ -18,6 +18,8 @@ import (
 )
 
 var config string
+var http *internalhttp.Server
+var grpc *internalgrpc.Server
 
 func init() {
 	flag.StringVar(&config, "config", "config.toml", "Path to configuration file")
@@ -51,8 +53,7 @@ func main() {
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
-	var http *internalhttp.Server
-	var grpc *internalgrpc.Server
+
 	go func() {
 		_, mux := internalhttp.NewHandler(ctx, application)
 		http, err := internalhttp.NewServer(mux, config.Port.HTTP, logg)
@@ -67,7 +68,6 @@ func main() {
 	}()
 
 	go func() {
-		//service := internalgrpc.New(ctx, application)
 		grpc, err := internalgrpc.NewServer(application, config.Port.Grpc)
 		if err != nil {
 			application.Log.Fatal("failed to start grpc server: " + err.Error())
