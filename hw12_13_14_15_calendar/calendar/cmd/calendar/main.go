@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
 	"os"
 	"os/signal"
 	"sync"
@@ -13,7 +14,6 @@ import (
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
 	internalgrpc "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
 	"github.com/apex/log"
 )
 
@@ -42,9 +42,7 @@ func main() {
 		log.Fatal("failed to create logger")
 	}
 
-	//	fmt.Printf("logger %w", logg)
-
-	storage := new(memorystorage.Storage)
+	storage := new(sql.Storage)
 	if err := storage.Connect(ctx, config.PSQL.DSN, logg); err != nil {
 		log.Fatal("fail connection")
 	}
@@ -59,8 +57,9 @@ func main() {
 
 	go func() {
 		application.Log.Info("http is running...")
+		_, mux := internalhttp.NewHandler(ctx, application)
 		server := internalhttp.New()
-		http, _, err := server.NewServer(ctx, application, config.Port.HTTP)
+		http, err := server.NewServer(mux, config.Port.HTTP)
 		if err != nil {
 			application.Log.Fatal("failed to start http server: " + err.Error())
 		}

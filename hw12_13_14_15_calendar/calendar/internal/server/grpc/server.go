@@ -2,11 +2,11 @@ package internalgrpc
 
 import (
 	"context"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"net"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/pb"
-	sqlstorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/pkg/errors"
@@ -91,7 +91,7 @@ func (s *Service) SetEvent(ctx context.Context, req *pb.Event) (*pb.Id, error) {
 		s.app.Log.Info("BadRequest", zap.Int("Title can't be empty", int(req.Id)))
 		return nil, status.Error(codes.InvalidArgument, "Not enough arguments")
 	}
-	var eve sqlstorage.Event
+	var eve storage.Event
 	eve.Owner = req.Owner
 	eve.Title = req.Title
 	eve.Description = req.Description
@@ -114,7 +114,7 @@ func (s *Service) UpdateEvent(ctx context.Context, req *pb.Event) (*pb.Id, error
 		s.app.Log.Info("BadRequest", zap.Int("ID can't be zero or nil value", int(req.Id)))
 		return nil, status.Error(codes.InvalidArgument, "title is empty")
 	}
-	var eve sqlstorage.Event
+	var eve storage.Event
 	eve.ID = req.Id
 	eve.Owner = req.Owner
 	eve.Title = req.Title

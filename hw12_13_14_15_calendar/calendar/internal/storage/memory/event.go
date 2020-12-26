@@ -1,5 +1,5 @@
 //nolint
-package storage
+package memorystorage
 
 import (
 	"errors"

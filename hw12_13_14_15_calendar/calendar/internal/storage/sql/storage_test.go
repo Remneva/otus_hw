@@ -1,8 +1,6 @@
-package memorystorage
+package sql
 
-import (
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
-)
+import "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
 
 //func TestSetEvent(t *testing.T) {
 //	start := time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -96,7 +94,7 @@ import (
 //}
 //
 type eventMatcher struct {
-	sqlstorage.Event
+	memorystorage.Event
 }
 
 //

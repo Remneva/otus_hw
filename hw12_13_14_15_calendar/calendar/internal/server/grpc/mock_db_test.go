@@ -2,7 +2,7 @@
 // Source: github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage (interfaces: EventsStorage)
 
 // Package storage is a generated GoMock package.
-package internalhttp
+package internalgrpc
 
 import (
 	context "context"

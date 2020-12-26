@@ -3,20 +3,15 @@ package internalhttp
 import (
 	"context"
 	"encoding/json"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
-	sqlstorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
-
-type MyHandler struct {
-	app *app.App
-	ctx context.Context
-}
 
 func New() Server {
 	return Server{}
@@ -30,14 +25,16 @@ type Server struct {
 type Application interface {
 }
 
-func (s *Server) NewServer(ctx context.Context, app *app.App, port string) (*Server, *MyHandler, error) {
-	handler := &MyHandler{ctx: ctx, app: app}
+type MyHandler struct {
+	app *app.App
+	ctx context.Context
+}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/set", requestLoggerMiddleware(handler, handler.SetEvent))
-	mux.HandleFunc("/get", requestLoggerMiddleware(handler, handler.GetEvent))
-	mux.HandleFunc("/delete", requestLoggerMiddleware(handler, handler.DeleteEvent))
-	mux.HandleFunc("/update", requestLoggerMiddleware(handler, handler.UpdateEvent))
+func (m *MyHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	panic("implement me")
+}
+
+func (s *Server) NewServer(mux *http.ServeMux, port string) (*Server, error) {
 	server := &http.Server{
 		Addr:           port,
 		Handler:        mux,
@@ -48,9 +45,18 @@ func (s *Server) NewServer(ctx context.Context, app *app.App, port string) (*Ser
 	err := server.ListenAndServe()
 	if err != nil {
 		s.app.Log.Error("ListenAndServe", zap.Error(err))
-		return nil, handler, errors.Wrap(err, "creating a new ServerTransport failed")
+		return nil, errors.Wrap(err, "creating a new ServerTransport failed")
 	}
-	return &Server{}, handler, nil
+	return &Server{}, nil
+}
+func NewHandler(ctx context.Context, app *app.App) (*MyHandler, *http.ServeMux) {
+	handler := &MyHandler{ctx: ctx, app: app}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/set", requestLoggerMiddleware(handler, handler.SetEvent))
+	mux.HandleFunc("/get", requestLoggerMiddleware(handler, handler.GetEvent))
+	mux.HandleFunc("/delete", requestLoggerMiddleware(handler, handler.DeleteEvent))
+	mux.HandleFunc("/update", requestLoggerMiddleware(handler, handler.UpdateEvent))
+	return handler, mux
 }
 
 func (s *Server) Start(ctx context.Context) error {
@@ -80,7 +86,7 @@ func (m *MyHandler) SetEvent(resp http.ResponseWriter, req *http.Request) {
 		m.app.Log.Error("Unmarshal error", zap.Error(err))
 	}
 
-	var eve sqlstorage.Event
+	var eve storage.Event
 	eve.Owner = rb.Owner
 	eve.Title = rb.Title
 	eve.Description = rb.Description
@@ -180,7 +186,7 @@ func (m *MyHandler) UpdateEvent(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var eve sqlstorage.Event
+	var eve storage.Event
 	eve.ID = rb.ID
 	eve.Owner = rb.Owner
 	eve.Title = rb.Title
