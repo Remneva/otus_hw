@@ -12,7 +12,12 @@ type Config struct {
 	Logger LoggerConfig
 	PSQL   PSQLConfig
 	Port   PortConfig
-	AMQP   AmqpConfig
+	AMQP   AMQPConfig
+	Mode   ModeConfig
+}
+
+type ModeConfig struct {
+	MemMode bool
 }
 
 type LoggerConfig struct {
@@ -29,8 +34,8 @@ type PortConfig struct {
 	Grpc string
 }
 
-type AmqpConfig struct {
-	Uri          string
+type AMQPConfig struct {
+	URI          string
 	ExchangeName string
 	ExchangeType string
 	RoutingKey   string
@@ -48,11 +53,12 @@ func Read(path string) (c Config, err error) {
 	fmt.Println("path: ", c.Logger.Path)
 	fmt.Println("port http: ", c.Port.HTTP)
 	fmt.Println("port grpc: ", c.Port.Grpc)
-	fmt.Println("Uri: ", c.AMQP.Uri)
+	fmt.Println("URI: ", c.AMQP.URI)
 	fmt.Println("ExchangeName: ", c.AMQP.ExchangeName)
 	fmt.Println("ExchangeType: ", c.AMQP.ExchangeType)
 	fmt.Println("RoutingKey: ", c.AMQP.RoutingKey)
 	fmt.Println("Body: ", c.AMQP.Body)
 	fmt.Println("Reliable: ", c.AMQP.Reliable)
+	fmt.Println("MemMode: ", c.Mode.MemMode)
 	return
 }

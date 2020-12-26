@@ -1,33 +1,22 @@
 package app
 
 import (
-	"context"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
-	"github.com/pkg/errors"
+	memorystorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
 	"go.uber.org/zap"
 )
 
 type App struct {
+	Mode bool
 	Repo storage.EventsStorage
+	Mem  *memorystorage.EventMap
 	Log  *zap.Logger
 }
 
-type Logger interface {
-	// TODO
-}
-
-type Storage interface {
-	// TODO
-}
-
-func New(logger *zap.Logger, r storage.EventsStorage) (*App, error) {
-	return &App{Repo: r, Log: logger}, nil
-}
-
-func (a *App) Stop(ctx context.Context) error {
-	if err := a.Stop(ctx); err != nil {
-		a.Log.Error("failed to stop http server: " + err.Error())
-		return errors.Wrap(err, "failed to stop http server")
+func New(logger *zap.Logger, r storage.EventsStorage, c configs.Config) *App {
+	if !c.Mode.MemMode {
+		return &App{Mem: nil, Repo: r, Log: logger, Mode: c.Mode.MemMode}
 	}
-	return nil
+	return &App{Mem: memorystorage.NewMap(), Repo: nil, Log: logger, Mode: c.Mode.MemMode}
 }

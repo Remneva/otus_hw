@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
 	"os"
 	"os/signal"
 	"sync"
@@ -14,6 +13,7 @@ import (
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
 	internalgrpc "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
 	"github.com/apex/log"
 )
 
@@ -30,9 +30,6 @@ func main() {
 		printVersion()
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	config, err := configs.Read(config)
 	if err != nil {
 		log.Fatal("failed to read config")
@@ -41,29 +38,28 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to create logger")
 	}
-
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	storage := new(sql.Storage)
 	if err := storage.Connect(ctx, config.PSQL.DSN, logg); err != nil {
-		log.Fatal("fail connection")
+		logg.Fatal("fail connection")
 	}
-	application, err := app.New(logg, storage)
+	application := app.New(logg, storage, config)
 	if err != nil {
 		logg.Fatal("failed to start application")
 	}
 
-	logg.Info("calendar is running...")
 	wg := sync.WaitGroup{}
 	wg.Add(2)
-
+	var http *internalhttp.Server
+	var grpc *internalgrpc.Server
 	go func() {
-		application.Log.Info("http is running...")
 		_, mux := internalhttp.NewHandler(ctx, application)
-		server := internalhttp.New()
-		http, err := server.NewServer(mux, config.Port.HTTP)
+		http, err := internalhttp.NewServer(mux, config.Port.HTTP, logg)
 		if err != nil {
 			application.Log.Fatal("failed to start http server: " + err.Error())
 		}
-		if err := http.Start(ctx); err != nil {
+		if err = http.Start(ctx); err != nil {
 			application.Log.Error("failed to start http server: " + err.Error())
 			os.Exit(1)
 		}
@@ -71,13 +67,12 @@ func main() {
 	}()
 
 	go func() {
-		application.Log.Info("grpc is running...")
-		service := internalgrpc.New(ctx, application)
-		grpc, err := service.NewServer(config.Port.Grpc)
+		//service := internalgrpc.New(ctx, application)
+		grpc, err := internalgrpc.NewServer(application, config.Port.Grpc)
 		if err != nil {
 			application.Log.Fatal("failed to start grpc server: " + err.Error())
 		}
-		if err := grpc.Start(ctx); err != nil {
+		if err = grpc.Start(ctx); err != nil {
 			application.Log.Error("failed to start grpc server: " + err.Error())
 			os.Exit(1)
 		}
@@ -85,20 +80,25 @@ func main() {
 	}()
 
 	wg.Wait()
-	go func() {
-		signals := make(chan os.Signal, 1)
-		signal.Notify(signals)
+	go signalChan(application, http, grpc)
+}
 
-		<-signals
-		signal.Stop(signals)
-		cancel()
+func signalChan(app *app.App, http *internalhttp.Server, grpc *internalgrpc.Server) {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals)
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
+	<-signals
+	signal.Stop(signals)
 
-		err := application.Stop(ctx)
-		if err != nil {
-			logg.Error(err.Error())
-		}
-	}()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	err := http.Stop(ctx)
+	if err != nil {
+		app.Log.Error(err.Error())
+	}
+	err = grpc.Stop(ctx)
+	if err != nil {
+		app.Log.Error(err.Error())
+	}
 }

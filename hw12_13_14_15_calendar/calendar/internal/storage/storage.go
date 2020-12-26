@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go get github.com/golang/mock/mockgen
+// go get github.com/golang/mock/mockgen
 //go:generate mockgen -destination=mock_db_test.go -package=storage . EventsStorage
 
 type BaseStorage interface {

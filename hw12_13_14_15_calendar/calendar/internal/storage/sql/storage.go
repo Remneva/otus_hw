@@ -3,15 +3,15 @@ package sql
 import (
 	"context"
 	"database/sql"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
 var _ storage.BaseStorage = (*Storage)(nil)
-var OpenConnectionErr = errors.New("Open connection error")
-var SqlQueryErr = errors.New("Database query failed")
+var ErrOpenConnection = errors.New("Open connection error")
+var ErrSQLQuery = errors.New("Database query failed")
 
 type Storage struct {
 	db *sql.DB
@@ -28,7 +28,7 @@ func (s *Storage) Connect(ctx context.Context, dsn string, l *zap.Logger) (err e
 	s.db, err = sql.Open("pgx", dsn)
 	if err != nil {
 		s.l.Error("Error", zap.String("Open connection", err.Error()))
-		return errors.Wrapf(OpenConnectionErr, err.Error())
+		return errors.Wrapf(ErrOpenConnection, err.Error())
 	}
 	err = s.db.PingContext(ctx)
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *Storage) DeleteEvent(ctx context.Context, id int64) error {
 		`, id)
 	if err != nil {
 		s.l.Error("Error", zap.String("Connection", err.Error()))
-		return errors.Wrapf(SqlQueryErr, err.Error())
+		return errors.Wrapf(ErrSQLQuery, err.Error())
 	}
 	s.l.Info("Event Deleted", zap.Int64("id", id))
 	return nil
@@ -59,7 +59,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, ev storage.Event) error {
 	_, err := s.db.ExecContext(ctx, query, ev.Owner, ev.Title, ev.Description, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime, ev.ID)
 	if err != nil {
 		s.l.Error("Exec query error", zap.Error(err))
-		return errors.Wrapf(SqlQueryErr, err.Error())
+		return errors.Wrapf(ErrSQLQuery, err.Error())
 	}
 	s.l.Info("Event Updated", zap.Int64("id", ev.ID))
 	return nil
@@ -79,7 +79,7 @@ func (s *Storage) GetEvent(ctx context.Context, id int64) (storage.Event, error)
 		&ev.EndDate,
 		&ev.EndTime)
 	if err != nil {
-		return ev, errors.Wrapf(SqlQueryErr, err.Error())
+		return ev, errors.Wrapf(ErrSQLQuery, err.Error())
 	}
 	return ev, nil
 }
@@ -89,7 +89,7 @@ func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 		SELECT id, owner, title, description, start_date, start_time, end_date, end_time FROM events
 	`)
 	if err != nil {
-		return nil, errors.Wrapf(SqlQueryErr, err.Error())
+		return nil, errors.Wrapf(ErrSQLQuery, err.Error())
 	}
 	defer rows.Close()
 	var events []storage.Event
@@ -106,7 +106,7 @@ func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 			&ev.EndTime,
 		); err != nil {
 			s.l.Error("Get event error", zap.String("query", rows.Err().Error()))
-			return nil, errors.Wrapf(SqlQueryErr, err.Error())
+			return nil, errors.Wrapf(ErrSQLQuery, err.Error())
 		}
 		events = append(events, ev)
 	}
@@ -118,13 +118,13 @@ func (s *Storage) AddEvent(ctx context.Context, ev storage.Event) (int64, error)
 VALUES($1, $2, $3, $4, $5, $6, $7)`
 	_, err := s.db.ExecContext(ctx, query, ev.Owner, ev.Title, ev.Description, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime)
 	if err != nil {
-		return 0, errors.Wrapf(SqlQueryErr, err.Error())
+		return 0, errors.Wrapf(ErrSQLQuery, err.Error())
 	}
 	var id int64
 	err = s.db.QueryRowContext(ctx, `
 		SELECT id FROM events ORDER BY id DESC LIMIT 1`).Scan(&id)
 	if err != nil {
-		return 0, errors.Wrapf(SqlQueryErr, err.Error())
+		return 0, errors.Wrapf(ErrSQLQuery, err.Error())
 	}
 	s.l.Info("Event Created", zap.Int64("id", id))
 	return id, nil

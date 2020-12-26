@@ -4,20 +4,20 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
+	_ "github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap/zapcore"
-	"io/ioutil"
-
-	_ "github.com/stretchr/testify/require"
-
-	"net/http/httptest"
-	"testing"
-	"time"
 )
 
 func TestStoreSuite(t *testing.T) {
@@ -179,8 +179,9 @@ func (s *StoreSuite) SetupTest() {
 	s.mockCtl = gomock.NewController(s.T())
 	s.mockDB = NewMockEventsStorage(s.mockCtl)
 	var z zapcore.Level
+	var c configs.Config
 	logg, _ := logger.NewLogger(z, "/dev/null")
-	s.app, _ = app.New(logg, s.mockDB)
+	s.app = app.New(logg, s.mockDB, c)
 	s.start = time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
 	s.oneDayLater = s.start.AddDate(0, 0, 1)
 }

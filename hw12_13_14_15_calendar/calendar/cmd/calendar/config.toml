@@ -1,3 +1,5 @@
+[mode]
+memMode = false
 [psql]
 dsn = "host=localhost port=5432 user=mary password=mary dbname=exampledb sslmode=disable"
 [logger]

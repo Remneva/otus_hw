@@ -2,11 +2,11 @@ package internalgrpc
 
 import (
 	"context"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"net"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/pb"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/pkg/errors"
@@ -17,54 +17,69 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type Service struct {
+type Server struct {
 	pb.UnimplementedCalendarServer
-	app *app.App
-	ctx context.Context
+	app    *app.App
+	ctx    context.Context
+	server *grpc.Server
 }
 
-type Application struct {
+func New(ctx context.Context, app *app.App) *Server {
+	return &Server{}
 }
 
-func New(ctx context.Context, app *app.App) *Service {
-	return &Service{
-		app: app,
-		ctx: ctx,
-	}
-}
-
-func (s *Service) NewServer(address string) (*Service, error) {
+func NewServer(app *app.App, address string) (*Server, error) {
+	app.Log.Info("grpc is running...")
 	lsn, err := net.Listen("tcp", address)
 	if err != nil {
-		s.app.Log.Error("Listening Error", zap.Error(err))
-		return &Service{}, errors.Wrap(err, "Database query failed")
+		app.Log.Error("Listening Error", zap.Error(err))
+		return &Server{}, errors.Wrap(err, "Database query failed")
 	}
 	server := grpc.NewServer()
-	pb.RegisterCalendarServer(server, s)
-	s.app.Log.Info("starting grpc server", zap.String("Addr", lsn.Addr().String()))
-	if err := server.Serve(lsn); err != nil {
-		s.app.Log.Error("Error", zap.Error(err))
-		return &Service{}, errors.Wrap(err, "creating a new ServerTransport failed")
+	srv := &Server{ //nolint
+		app:    app,
+		server: server,
 	}
-	return &Service{}, nil
+	pb.RegisterCalendarServer(server, srv)
+	app.Log.Info("starting grpc server", zap.String("Addr", lsn.Addr().String()))
+	if err := server.Serve(lsn); err != nil {
+		app.Log.Error("Error", zap.Error(err))
+		return &Server{}, errors.Wrap(err, "creating a new ServerTransport failed")
+	}
+	return srv, nil
 }
 
-func (s *Service) Start(ctx context.Context) error {
-	select {
+func (s *Server) Start(ctx context.Context) error {
+	select { //nolint
 	case <-ctx.Done():
 		return nil
 	}
 }
 
-func (s *Service) GetEvent(ctx context.Context, req *pb.Id) (*pb.Event, error) {
+func (s *Server) Stop(ctx context.Context) error {
+	ctx.Done()
+	s.server.GracefulStop()
+	return nil
+}
+
+func (s *Server) GetEvent(ctx context.Context, req *pb.Id) (*pb.Event, error) {
+	var eve storage.Event
+	var err error
 	s.app.Log.Info("Get Event grpc method", zap.Int("req", int(req.Id)))
 	if req.Id == 0 {
 		s.app.Log.Info("BadRequest", zap.Int("ID can't be zero or nil value", int(req.Id)))
 		return nil, status.Error(codes.InvalidArgument, "")
 	}
-	eve, err := s.app.Repo.GetEvent(ctx, req.Id)
-	if err != nil {
-		s.app.Log.Error("Get Event grpc method", zap.Error(err))
+	if !s.app.Mode {
+		eve, err = s.app.Repo.GetEvent(ctx, req.Id)
+		if err != nil {
+			s.app.Log.Error("Get Event grpc psql method", zap.Error(err))
+		}
+	} else {
+		eve, err = s.app.Mem.GetEvent(ctx, req.Id)
+		if err != nil {
+			s.app.Log.Error("Get Event grpc memory method", zap.Error(err))
+		}
 	}
 	StartTime, err := ptypes.TimestampProto(eve.StartTime)
 	if err != nil {
@@ -85,7 +100,9 @@ func (s *Service) GetEvent(ctx context.Context, req *pb.Id) (*pb.Event, error) {
 	}, nil
 }
 
-func (s *Service) SetEvent(ctx context.Context, req *pb.Event) (*pb.Id, error) {
+func (s *Server) SetEvent(ctx context.Context, req *pb.Event) (*pb.Id, error) {
+	var id int64
+	var err error
 	s.app.Log.Info("Create Event grpc method", zap.Int("req", int(req.Id)))
 	if req.Title == "" {
 		s.app.Log.Info("BadRequest", zap.Int("Title can't be empty", int(req.Id)))
@@ -99,16 +116,24 @@ func (s *Service) SetEvent(ctx context.Context, req *pb.Event) (*pb.Id, error) {
 	eve.EndDate = req.Enddate
 	eve.StartTime, _ = ptypes.Timestamp(req.Starttime)
 	eve.StartTime, _ = ptypes.Timestamp(req.Endtime)
-
-	id, err := s.app.Repo.AddEvent(ctx, eve)
-	if err != nil {
-		s.app.Log.Info("Create Event", zap.String("error", err.Error()))
-		return nil, nil
+	if !s.app.Mode {
+		id, err = s.app.Repo.AddEvent(ctx, eve)
+		if err != nil {
+			s.app.Log.Info("Create Event grpc psql method", zap.String("error", err.Error()))
+			return nil, nil
+		}
+	} else {
+		id, err = s.app.Mem.AddEvent(ctx, eve)
+		if err != nil {
+			s.app.Log.Info("Create Event grpc memory method", zap.String("error", err.Error()))
+			return nil, nil
+		}
 	}
 	return &pb.Id{Id: id}, nil
 }
 
-func (s *Service) UpdateEvent(ctx context.Context, req *pb.Event) (*pb.Id, error) {
+func (s *Server) UpdateEvent(ctx context.Context, req *pb.Event) (*pb.Id, error) {
+	var err error
 	s.app.Log.Info("Update grpc method", zap.Int("req", int(req.Id)))
 	if req.Id == 0 {
 		s.app.Log.Info("BadRequest", zap.Int("ID can't be zero or nil value", int(req.Id)))
@@ -123,24 +148,39 @@ func (s *Service) UpdateEvent(ctx context.Context, req *pb.Event) (*pb.Id, error
 	eve.EndDate = req.Enddate
 	eve.StartTime, _ = ptypes.Timestamp(req.Starttime)
 	eve.StartTime, _ = ptypes.Timestamp(req.Endtime)
-
-	err := s.app.Repo.UpdateEvent(s.ctx, eve)
-	if err != nil {
-		s.app.Log.Info("Update Event", zap.String("error", err.Error()))
-		return nil, nil
+	if !s.app.Mode {
+		err = s.app.Repo.UpdateEvent(s.ctx, eve)
+		if err != nil {
+			s.app.Log.Info("Update Event grpc psql method", zap.String("error", err.Error()))
+			return nil, nil
+		}
+	} else {
+		err = s.app.Mem.UpdateEvent(s.ctx, eve)
+		if err != nil {
+			s.app.Log.Info("Update Event grpc memory method", zap.String("error", err.Error()))
+			return nil, nil
+		}
 	}
 	return &pb.Id{}, nil
 }
 
-func (s *Service) DeleteEvent(ctx context.Context, req *pb.Id) (*emptypb.Empty, error) {
+func (s *Server) DeleteEvent(ctx context.Context, req *pb.Id) (*emptypb.Empty, error) {
+	var err error
 	s.app.Log.Info("Delete Event grpc method", zap.Int("id", int(req.Id)))
 	if req.Id == 0 {
 		s.app.Log.Info("ID can`t be 0", zap.Int("id", int(req.Id)))
 		return nil, status.Error(codes.InvalidArgument, "ID can`t be 0")
 	}
-	err := s.app.Repo.DeleteEvent(ctx, req.Id)
-	if err != nil {
-		s.app.Log.Error("Delete Event grpc method", zap.Error(err))
+	if !s.app.Mode {
+		err = s.app.Repo.DeleteEvent(ctx, req.Id)
+		if err != nil {
+			s.app.Log.Error("Delete Event grpc psql method", zap.Error(err))
+		}
+	} else {
+		err = s.app.Mem.DeleteEvent(ctx, req.Id)
+		if err != nil {
+			s.app.Log.Error("Delete Event grpc memory method", zap.Error(err))
+		}
 	}
 	return &empty.Empty{}, nil
 }

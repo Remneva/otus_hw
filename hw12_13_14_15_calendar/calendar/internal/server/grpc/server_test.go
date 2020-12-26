@@ -2,6 +2,10 @@ package internalgrpc
 
 import (
 	"context"
+	"testing"
+	"time"
+
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/pb"
@@ -13,8 +17,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"testing"
-	"time"
 )
 
 //func TestServer(t *testing.T) {
@@ -190,7 +192,7 @@ type StoreSuite struct {
 	start       time.Time
 	oneDayLater time.Time
 	ctx         context.Context
-	srv         Service
+	srv         Server
 	starttime   *timestamppb.Timestamp
 	endtime     *timestamppb.Timestamp
 }
@@ -199,9 +201,10 @@ func (s *StoreSuite) SetupTest() {
 	s.mockCtl = gomock.NewController(s.T())
 	s.mockDB = NewMockEventsStorage(s.mockCtl)
 	var z zapcore.Level
+	var c configs.Config
 	logg, _ := logger.NewLogger(z, "/dev/null")
-	s.app, _ = app.New(logg, s.mockDB)
-	s.srv = Service{app: s.app}
+	s.app = app.New(logg, s.mockDB, c)
+	s.srv = Server{app: s.app}
 	s.start = time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
 	s.oneDayLater = s.start.AddDate(0, 0, 1)
 	s.starttime, _ = ptypes.TimestampProto(s.start)
