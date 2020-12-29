@@ -17,4 +17,3 @@ body = "foobar"
 reliable = true
 consumerTag = "simple-consumer"
 queue = "test-queue"
-timeout = 30

@@ -2,10 +2,10 @@ package configs
 
 import (
 	"fmt"
-
 	"github.com/BurntSushi/toml"
 	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
+	"time"
 )
 
 type Config struct {
@@ -41,6 +41,9 @@ type AMQPConfig struct {
 	RoutingKey   string
 	Body         string
 	Reliable     bool
+	Timeout      time.Duration
+	ConsumerTag  string
+	Queue        string
 }
 
 func Read(path string) (c Config, err error) {
@@ -60,5 +63,6 @@ func Read(path string) (c Config, err error) {
 	fmt.Println("Body: ", c.AMQP.Body)
 	fmt.Println("Reliable: ", c.AMQP.Reliable)
 	fmt.Println("MemMode: ", c.Mode.MemMode)
+	fmt.Println("Queue: ", c.AMQP.Queue)
 	return
 }
