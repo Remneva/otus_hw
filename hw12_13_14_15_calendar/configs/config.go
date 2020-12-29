@@ -2,10 +2,11 @@ package configs
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/BurntSushi/toml"
 	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
-	"time"
 )
 
 type Config struct {
