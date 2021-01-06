@@ -1,6 +1,57 @@
 package main
 
+import (
+	"flag"
+	"log"
+	"net"
+	"os"
+	"sync"
+	"time"
+)
+
+var (
+	host, port      string
+	timeout         time.Duration
+	timeoutDuration time.Duration
+)
+
+func init() {
+	flag.Duration("timeout", 0, "connection timeout")
+	flag.StringVar(&host, "host", "localhost", "host")
+	flag.StringVar(&port, "port", "4242", "port")
+}
+
 func main() {
-	// Place your code here
-	// P.S. Do not rush to throw context down, think think if it is useful with blocking operation?
+	flag.Parse()
+	timeoutDuration = timeout * time.Second
+	address := net.JoinHostPort(host, port)
+	out := os.Stdout
+	in := os.Stdin
+	client := NewTelnetClient(address, timeoutDuration, in, out)
+
+	err := client.Connect()
+	if err != nil {
+		log.Fatalf("Cannot accept: %v", err)
+	}
+	defer client.Close()
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	wg.Wait()
+	for {
+		go func() {
+			defer wg.Done()
+			err := client.Receive()
+			if err != nil {
+				log.Fatalf("Cannot start receiving routin: %v", err.Error())
+			}
+		}()
+
+		go func() {
+			defer wg.Done()
+			err := client.Send()
+			if err != nil {
+				log.Fatalf("Cannot start sending routin: %v", err.Error())
+			}
+		}()
+	}
 }
