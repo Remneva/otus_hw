@@ -16,13 +16,15 @@ var (
 )
 
 func init() {
-	flag.Duration("timeout", 0, "connection timeout")
+	flag.Duration("timeout", 10, "connection timeout")
 	flag.StringVar(&host, "host", "localhost", "host")
 	flag.StringVar(&port, "port", "4242", "port")
 }
 
 func main() {
 	flag.Parse()
+	host := os.Args[2]
+	port := os.Args[3]
 	timeoutDuration = timeout * time.Second
 	address := net.JoinHostPort(host, port)
 	out := os.Stdout
@@ -36,22 +38,22 @@ func main() {
 	defer client.Close()
 	wg := sync.WaitGroup{}
 	wg.Add(2)
-	wg.Wait()
-	for {
-		go func() {
-			defer wg.Done()
-			err := client.Receive()
-			if err != nil {
-				log.Fatalf("Cannot start receiving routin: %v", err.Error())
-			}
-		}()
 
-		go func() {
-			defer wg.Done()
-			err := client.Send()
-			if err != nil {
-				log.Fatalf("Cannot start sending routin: %v", err.Error())
-			}
-		}()
-	}
+	go func() {
+		defer wg.Done()
+		err := client.Receive()
+		if err != nil {
+			log.Fatalf("Cannot start receiving routin: %v", err.Error())
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		err := client.Send()
+		if err != nil {
+			log.Fatalf("Cannot start sending routin: %v", err.Error())
+		}
+	}()
+
+	wg.Wait()
 }

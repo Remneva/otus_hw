@@ -29,7 +29,6 @@ func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, ou
 		in:      in,
 		out:     out,
 	}
-
 	return t
 }
 
@@ -46,7 +45,6 @@ OUTER:
 				break OUTER
 			}
 			text := scanner.Text()
-			fmt.Println(text)
 			_, err := t.out.Write([]byte(fmt.Sprintf("%s\n", text)))
 			if err != nil {
 				return fmt.Errorf("write received msg error: %w", err)
@@ -69,7 +67,6 @@ OUTER:
 				break OUTER
 			}
 			str := scanner.Text()
-			fmt.Println(str)
 			_, err := t.conn.Write([]byte(fmt.Sprintf("%s\n", str)))
 			if err != nil {
 				return fmt.Errorf("send msg error: %w", err)
