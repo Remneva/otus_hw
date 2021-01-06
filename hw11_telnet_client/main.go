@@ -43,7 +43,7 @@ func main() {
 		defer wg.Done()
 		err := client.Receive()
 		if err != nil {
-			log.Fatalf("Cannot start receiving routin: %v", err.Error())
+			log.Fatalf("Cannot start receiving goroutine: %v", err.Error())
 		}
 	}()
 
@@ -51,7 +51,7 @@ func main() {
 		defer wg.Done()
 		err := client.Send()
 		if err != nil {
-			log.Fatalf("Cannot start sending routin: %v", err.Error())
+			log.Fatalf("Cannot start sending goroutine: %v", err.Error())
 		}
 	}()
 

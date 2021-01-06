@@ -76,7 +76,6 @@ func TestTelnetClient(t *testing.T) {
 		client := NewTelnetClient("ololo.com:80", timeout, ioutil.NopCloser(in), out)
 		err = client.Connect()
 		require.Error(t, err)
-		require.EqualError(t, err, "dial connection error: dial tcp: lookup ololo.com on 127.0.0.53:53: server misbehaving")
 	})
 
 	t.Run("close connection error", func(t *testing.T) {
