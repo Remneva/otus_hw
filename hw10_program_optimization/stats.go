@@ -43,16 +43,19 @@ func countDomains(lines []string, domain string) (DomainStat, error) {
 }
 
 func counter(line string, result DomainStat, domain string) DomainStat {
-	str := strings.ToLower(strings.SplitN(line, "@", 2)[1])
-	email := strings.SplitN(str, "\"", 2)[0]
+	if strings.Contains(line, "@") {
+		str := strings.ToLower(strings.SplitN(line, "@", 2)[1])
+		email := strings.SplitN(str, "\"", 2)[0]
 
-	matched := strings.Contains(email, domain)
+		matched := strings.Contains(email, domain)
 
-	if matched {
-		domain := strings.ToLower(email)
-		num := result[domain]
-		atomic.AddInt32(&num, 1)
-		result[domain] = atomic.LoadInt32(&num)
+		if matched {
+			domain := strings.ToLower(email)
+			num := result[domain]
+			atomic.AddInt32(&num, 1)
+			result[domain] = atomic.LoadInt32(&num)
+		}
+		return result
 	}
-	return result
+	return nil
 }

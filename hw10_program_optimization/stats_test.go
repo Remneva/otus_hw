@@ -36,4 +36,24 @@ func TestGetDomainStat(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
 	})
+
+	t.Run("counting all domains", func(t *testing.T) {
+		testdata := []string{"ololo@trololo.su", "fufur@furfur.su"}
+		result, err := countDomains(testdata, "su")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{"trololo.su": 1, "furfur.su": 1}, result)
+	})
+
+	t.Run("there is no suitable data", func(t *testing.T) {
+		testdata := []string{"ololo@trololo.net"}
+		result, err := countDomains(testdata, "su")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("counter", func(t *testing.T) {
+		result := counter("ololo@trololo.su", DomainStat{"trololo.su": 1}, "su")
+		require.Equal(t, DomainStat{"trololo.su": 2}, result)
+	})
+
 }
