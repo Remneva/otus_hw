@@ -14,7 +14,7 @@ type DomainStat map[string]int32
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	e, err := getUsers(r, domain)
 	if err != nil {
-		return nil, fmt.Errorf("get users error: %s", err)
+		return nil, fmt.Errorf("get users error: %w", err)
 	}
 	return countDomains(e, domain)
 }
@@ -30,7 +30,6 @@ func getUsers(r io.Reader, domain string) ([]string, error) {
 		}
 	}
 	return lines, nil
-
 }
 
 func countDomains(lines []string, domain string) (DomainStat, error) {
@@ -55,7 +54,6 @@ func counter(line string, result DomainStat, domain string) DomainStat {
 	matched := strings.Contains(email, domain)
 
 	if matched {
-
 		domain := strings.ToLower(email)
 		num := result[domain]
 		atomic.AddInt32(&num, 1)

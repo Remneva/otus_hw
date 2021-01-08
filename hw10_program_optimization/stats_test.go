@@ -4,8 +4,9 @@ package hw10_program_optimization //nolint:golint,stylecheck
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetDomainStat(t *testing.T) {
