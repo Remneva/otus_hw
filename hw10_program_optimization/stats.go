@@ -47,14 +47,14 @@ func getUsers(r io.Reader) (emails, error) {
 	user := &User{}
 
 	result := make(emails, 0)
-	rw := sync.RWMutex{}
+	rw := sync.Mutex{}
 
 	for _, line := range lines {
 		line := []byte(line)
 
 		go func(result *emails) {
 			defer wg.Done()
-			getEmails(&rw, *user, line, result)
+			result.getEmails(&rw, *user, line)
 		}(&result)
 	}
 	wg.Wait()
@@ -89,13 +89,13 @@ func matcher(email string, result DomainStat, domain string) DomainStat {
 	return result
 }
 
-func getEmails(rw sync.Locker, user User, line []byte, result *emails) emails {
+func (r *emails) getEmails(rw *sync.Mutex, user User, line []byte) {
 
 	if err := ffjson.UnmarshalFast(line, &user); err != nil {
-		return *result
+		return
 	}
 	rw.Lock()
-	*result = append(*result, user.Email)
+	*r = append(*r, user.Email)
 	rw.Unlock()
-	return *result
+	return
 }
