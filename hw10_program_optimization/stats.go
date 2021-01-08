@@ -2,7 +2,6 @@ package hw10_program_optimization //nolint:golint,stylecheck
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -12,15 +11,11 @@ import (
 type DomainStat map[string]int32
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
-	e, err := getUsers(r, domain)
-	if err != nil {
-		return nil, fmt.Errorf("get users error: %w", err)
-	}
+	e := getUsers(r, domain)
 	return countDomains(e, domain)
 }
 
-func getUsers(r io.Reader, domain string) ([]string, error) {
-
+func getUsers(r io.Reader, domain string) []string {
 	scanner := bufio.NewScanner(r)
 	lines := make([]string, 0, cap(scanner.Bytes()))
 	for scanner.Scan() {
@@ -29,7 +24,7 @@ func getUsers(r io.Reader, domain string) ([]string, error) {
 			lines = append(lines, scanner.Text())
 		}
 	}
-	return lines, nil
+	return lines
 }
 
 func countDomains(lines []string, domain string) (DomainStat, error) {
