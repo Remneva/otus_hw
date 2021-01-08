@@ -1,12 +1,14 @@
+//go:generate ffjson $GOFILE
 package hw10_program_optimization //nolint:golint,stylecheck
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/pquerna/ffjson/ffjson"
 	"io"
 	"io/ioutil"
-	"regexp"
 	"strings"
+	"sync"
+	"sync/atomic"
 )
 
 type User struct {
@@ -19,49 +21,81 @@ type User struct {
 	Address  string
 }
 
-type DomainStat map[string]int
+type DomainStat map[string]int32
+type emails []string
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
-	u, err := getUsers(r)
+	e, err := getUsers(r)
 	if err != nil {
 		return nil, fmt.Errorf("get users error: %s", err)
 	}
-	return countDomains(u, domain)
+	return countDomains(e, domain)
 }
 
-type users [100_000]User
+func getUsers(r io.Reader) (emails, error) {
 
-func getUsers(r io.Reader) (result users, err error) {
 	content, err := ioutil.ReadAll(r)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	lines := strings.Split(string(content), "\n")
-	for i, line := range lines {
-		var user User
-		if err = json.Unmarshal([]byte(line), &user); err != nil {
-			return
-		}
-		result[i] = user
+	size := len(lines)
+
+	wg := sync.WaitGroup{}
+	wg.Add(size)
+	user := &User{}
+
+	result := make(emails, 0)
+	rw := sync.RWMutex{}
+
+	for _, line := range lines {
+		line := []byte(line)
+
+		go func(result *emails) {
+			defer wg.Done()
+			getEmails(&rw, *user, line, result)
+		}(&result)
 	}
-	return
+	wg.Wait()
+	return result, nil
 }
 
-func countDomains(u users, domain string) (DomainStat, error) {
+func countDomains(e emails, domain string) (DomainStat, error) {
 	result := make(DomainStat)
+	wg := sync.WaitGroup{}
 
-	for _, user := range u {
-		matched, err := regexp.Match("\\."+domain, []byte(user.Email))
-		if err != nil {
-			return nil, err
-		}
+	for _, email := range e {
+		wg.Add(1)
+		go func(result *DomainStat) {
+			defer wg.Done()
 
-		if matched {
-			num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
-			num++
-			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
-		}
+			matcher(email, *result, domain)
+		}(&result)
+		wg.Wait()
 	}
 	return result, nil
+}
+
+func matcher(email string, result DomainStat, domain string) DomainStat {
+	matched := strings.Contains(email, domain)
+
+	if matched {
+		domain := strings.ToLower(strings.SplitN(email, "@", 2)[1])
+		num := result[domain]
+		atomic.AddInt32(&num, 1)
+		result[domain] = atomic.LoadInt32(&num)
+	}
+	return result
+}
+
+func getEmails(rw sync.Locker, user User, line []byte, result *emails) emails {
+
+	if err := ffjson.UnmarshalFast(line, &user); err != nil {
+		return *result
+	}
+	rw.Lock()
+	*result = append(*result, user.Email)
+	rw.Unlock()
+	return *result
 }
