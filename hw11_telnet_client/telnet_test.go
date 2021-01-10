@@ -97,4 +97,33 @@ func TestTelnetClient(t *testing.T) {
 		err = client.Close()
 		require.Error(t, err)
 	})
+
+	//	t.Run("close connection error", func(t *testing.T) {
+	//		l, err := net.Listen("tcp", "127.0.0.1:")
+	//		require.NoError(t, err)
+	//		defer func() { require.NoError(t, l.Close()) }()
+	//
+	//		timeout, err := time.ParseDuration("0s")
+	//		require.NoError(t, err)
+	//		i := &bytes.Buffer{}
+	//		in := ioutil.NopCloser(i)
+	//		client := NewTelnetClient("rbc.ru:80", timeout, ioutil.NopCloser(in), os.Stdout)
+	//
+	//		require.Equal(t, nil, client.conn)
+	//		require.NoError(t, client.Connect())
+	//		i.WriteString("hello\n")
+	//		os.Stdin.Close()
+	//	//	err = client.Close()
+	//		fmt.Println(err)
+	//		err = in.Close()
+	//		close(read(os.Stdin))
+	//		require.NoError(t, err)
+	////		time.Sleep(5 * time.Second)
+	//	//	require.Equal(t, nil, client.conn)
+	//
+	//		require.Equal(t, nil, client.conn)
+	////		err = client.Send()
+	//		require.Error(t, err)
+	//
+	//	})
 }
