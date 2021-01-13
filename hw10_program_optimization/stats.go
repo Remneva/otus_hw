@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"strings"
-	"sync/atomic"
 )
 
 type User struct {
@@ -56,8 +55,8 @@ func countDomains(u users, domain string) (DomainStat, error) {
 			str := strings.ToLower(user.Email)
 			domain := strings.SplitN(str, "@", 2)[1]
 			num := result[domain]
-			atomic.AddInt32(&num, 1)
-			result[domain] = atomic.LoadInt32(&num)
+			num++
+			result[domain] = num
 		}
 	}
 	return result, nil
