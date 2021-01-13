@@ -2,11 +2,21 @@ package hw10_program_optimization //nolint:golint,stylecheck
 
 import (
 	"bufio"
+	"encoding/json"
 	"io"
 	"strings"
-	"sync"
 	"sync/atomic"
 )
+
+type User struct {
+	ID       int
+	Name     string
+	Username string
+	Email    string
+	Phone    string
+	Password string
+	Address  string
+}
 
 type DomainStat map[string]int32
 
@@ -15,47 +25,40 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	return countDomains(e, domain)
 }
 
-func getUsers(r io.Reader, domain string) []string {
+type users []User
+
+func getUsers(r io.Reader, domain string) (result users) {
 	scanner := bufio.NewScanner(r)
-	lines := make([]string, 0, cap(scanner.Bytes()))
+	lines := make([]string, 0)
 	for scanner.Scan() {
 		str := scanner.Text()
 		if strings.Contains(str, domain) {
 			lines = append(lines, scanner.Text())
 		}
 	}
-	return lines
-}
-
-func countDomains(lines []string, domain string) (DomainStat, error) {
-	result := make(DomainStat)
-	wg := sync.WaitGroup{}
-
-	for _, line := range lines {
-		wg.Add(1)
-		go func(result *DomainStat) {
-			defer wg.Done()
-			counter(line, *result, domain)
-		}(&result)
-		wg.Wait()
+	result = make(users, len(lines))
+	for i, line := range lines {
+		u := User{}
+		if err := json.Unmarshal([]byte(line), &u); err != nil {
+			return nil
+		}
+		result[i] = u
 	}
-	return result, nil
+
+	return result
 }
 
-func counter(line string, result DomainStat, domain string) DomainStat {
-	if strings.Contains(line, "@") {
-		str := strings.ToLower(strings.SplitN(line, "@", 2)[1])
-		email := strings.SplitN(str, "\"", 2)[0]
-
-		matched := strings.Contains(email, domain)
-
+func countDomains(u users, domain string) (DomainStat, error) {
+	result := make(DomainStat)
+	for _, user := range u {
+		matched := strings.Contains(user.Email, domain)
 		if matched {
-			domain := strings.ToLower(email)
+			str := strings.ToLower(user.Email)
+			domain := strings.SplitN(str, "@", 2)[1]
 			num := result[domain]
 			atomic.AddInt32(&num, 1)
 			result[domain] = atomic.LoadInt32(&num)
 		}
-		return result
 	}
-	return nil
+	return result, nil
 }
