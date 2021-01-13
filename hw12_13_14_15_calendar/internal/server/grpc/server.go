@@ -22,6 +22,7 @@ type Server struct {
 	app    *app.App
 	ctx    context.Context
 	server *grpc.Server
+	lsn    net.Listener
 }
 
 func New(ctx context.Context, app *app.App) *Server {
@@ -39,25 +40,27 @@ func NewServer(app *app.App, address string) (*Server, error) {
 	srv := &Server{
 		app:    app,
 		server: server,
+		lsn:    lsn,
 	}
 	pb.RegisterCalendarServer(server, srv)
-	app.Log.Info("starting grpc server", zap.String("Addr", lsn.Addr().String()))
-	if err := server.Serve(lsn); err != nil {
-		app.Log.Error("Error", zap.Error(err))
-		return &Server{}, errors.Wrap(err, "creating a new ServerTransport failed")
-	}
+	//app.Log.Info("starting grpc server", zap.String("Addr", lsn.Addr().String()))
+	//if err := server.Serve(lsn); err != nil {
+	//	app.Log.Error("Error", zap.Error(err))
+	//	return &Server{}, errors.Wrap(err, "creating a new ServerTransport failed")
+	//}
 	return srv, nil
 }
 
-func (s *Server) Start(ctx context.Context) error {
-	select { //nolint
-	case <-ctx.Done():
-		return nil
+func (s *Server) Start() error {
+	s.app.Log.Info("starting grpc server", zap.String("Addr", s.lsn.Addr().String()))
+	if err := s.server.Serve(s.lsn); err != nil {
+		s.app.Log.Error("Error", zap.Error(err))
+		return errors.Wrap(err, "creating a new ServerTransport failed")
 	}
+	return nil
 }
 
-func (s *Server) Stop(ctx context.Context) error {
-	ctx.Done()
+func (s *Server) Stop() error {
 	s.server.GracefulStop()
 	return nil
 }
@@ -81,7 +84,7 @@ func (s *Server) GetEvent(ctx context.Context, req *pb.Id) (*pb.Event, error) {
 			s.app.Log.Error("Get Event grpc memory method", zap.Error(err))
 		}
 	}
-	StartTime, err := ptypes.TimestampProto(eve.StartTime)
+	startTime, err := ptypes.TimestampProto(eve.StartTime)
 	if err != nil {
 		s.app.Log.Error("TimestampProto", zap.Error(err))
 	}
@@ -94,7 +97,7 @@ func (s *Server) GetEvent(ctx context.Context, req *pb.Id) (*pb.Event, error) {
 		Title:       eve.Title,
 		Description: eve.Description,
 		Startdate:   eve.StartDate,
-		Starttime:   StartTime,
+		Starttime:   startTime,
 		Enddate:     eve.EndDate,
 		Endtime:     EndTime,
 	}, nil
@@ -108,14 +111,7 @@ func (s *Server) SetEvent(ctx context.Context, req *pb.Event) (*pb.Id, error) {
 		s.app.Log.Info("BadRequest", zap.Int("Title can't be empty", int(req.Id)))
 		return nil, status.Error(codes.InvalidArgument, "Not enough arguments")
 	}
-	var eve storage.Event
-	eve.Owner = req.Owner
-	eve.Title = req.Title
-	eve.Description = req.Description
-	eve.StartDate = req.Startdate
-	eve.EndDate = req.Enddate
-	eve.StartTime, _ = ptypes.Timestamp(req.Starttime)
-	eve.StartTime, _ = ptypes.Timestamp(req.Endtime)
+	eve := set(req)
 	if !s.app.Mode {
 		id, err = s.app.Repo.AddEvent(ctx, eve)
 		if err != nil {
@@ -139,15 +135,7 @@ func (s *Server) UpdateEvent(ctx context.Context, req *pb.Event) (*pb.Id, error)
 		s.app.Log.Info("BadRequest", zap.Int("ID can't be zero or nil value", int(req.Id)))
 		return nil, status.Error(codes.InvalidArgument, "title is empty")
 	}
-	var eve storage.Event
-	eve.ID = req.Id
-	eve.Owner = req.Owner
-	eve.Title = req.Title
-	eve.Description = req.Description
-	eve.StartDate = req.Startdate
-	eve.EndDate = req.Enddate
-	eve.StartTime, _ = ptypes.Timestamp(req.Starttime)
-	eve.StartTime, _ = ptypes.Timestamp(req.Endtime)
+	eve := set(req)
 	if !s.app.Mode {
 		err = s.app.Repo.UpdateEvent(s.ctx, eve)
 		if err != nil {
@@ -183,4 +171,17 @@ func (s *Server) DeleteEvent(ctx context.Context, req *pb.Id) (*emptypb.Empty, e
 		}
 	}
 	return &empty.Empty{}, nil
+}
+
+func set(req *pb.Event) storage.Event {
+	var eve storage.Event
+	eve.ID = req.Id
+	eve.Owner = req.Owner
+	eve.Title = req.Title
+	eve.Description = req.Description
+	eve.StartDate = req.Startdate
+	eve.EndDate = req.Enddate
+	eve.StartTime, _ = ptypes.Timestamp(req.Starttime)
+	eve.StartTime, _ = ptypes.Timestamp(req.Endtime)
+	return eve
 }

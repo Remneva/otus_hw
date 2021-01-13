@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -24,7 +25,7 @@ func NewLogger(level zapcore.Level, outputfile string) (*zap.Logger, error) {
 
 	logger, err := cfg.Build()
 	if err != nil {
-		return nil, errors.Wrap(err, "Logger build failed")
+		return nil, fmt.Errorf("logger build failed: %w", err)
 	}
 	return logger, nil
 }
@@ -38,15 +39,15 @@ func customLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) 
 }
 
 func mkFile(path string) error {
-	existFile := Exists(path)
+	existFile := exists(path)
 	if !existFile {
 		err := os.Mkdir("/tmp/tmpdir", 0755)
 		if err != nil {
-			return errors.Wrap(err, "Mkdir failed")
+			return fmt.Errorf("mkdir failed: %w", err)
 		}
 		tmpfile, err := safefile.Create(path, 0755)
 		if err != nil {
-			return errors.Wrap(err, "Create tmpfile failed")
+			return fmt.Errorf("create tmpfile failed: %w", err)
 		}
 		defer tmpfile.Close()
 		return nil
@@ -54,7 +55,7 @@ func mkFile(path string) error {
 	return nil
 }
 
-func Exists(name string) bool {
+func exists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
 		if os.IsNotExist(err) {
 			return false

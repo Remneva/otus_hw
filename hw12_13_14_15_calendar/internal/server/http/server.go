@@ -18,7 +18,7 @@ func New() Server {
 }
 
 type Server struct {
-	*http.Server
+	server *http.Server
 }
 
 type Application interface {
@@ -38,13 +38,10 @@ func NewServer(mux *http.ServeMux, port string, log *zap.Logger) (*Server, error
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	err := server.ListenAndServe()
-	if err != nil {
-		log.Error("ListenAndServe", zap.Error(err))
-		return nil, errors.Wrap(err, "creating a new ServerTransport failed")
+	srv := &Server{
+		server: server,
 	}
-
-	return &Server{}, nil
+	return srv, nil
 }
 func NewHandler(ctx context.Context, app *app.App) (*MyHandler, *http.ServeMux) {
 	handler := &MyHandler{ctx: ctx, app: app}
@@ -56,16 +53,16 @@ func NewHandler(ctx context.Context, app *app.App) (*MyHandler, *http.ServeMux) 
 	return handler, mux
 }
 
-func (s *Server) Start(ctx context.Context) error {
-	select { //nolint
-	case <-ctx.Done():
-		return nil
+func (s *Server) Start() error {
+	err := s.server.ListenAndServe()
+	if err != nil {
+		return errors.Wrap(err, "creating a new ServerTransport failed")
 	}
+	return nil
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	ctx.Done()
-	err := s.Shutdown(ctx)
+	err := s.server.Shutdown(ctx)
 	if err != nil {
 		return errors.New("shutdown error")
 	}
@@ -81,16 +78,7 @@ func (m *MyHandler) SetEvent(resp http.ResponseWriter, req *http.Request) {
 	if err = json.Unmarshal(body, &rb); err != nil {
 		m.app.Log.Error("Unmarshal error", zap.Error(err))
 	}
-
-	var eve storage.Event
-	eve.Owner = rb.Owner
-	eve.Title = rb.Title
-	eve.Description = rb.Description
-	eve.StartDate = rb.StartDate
-	eve.EndDate = rb.EndDate
-	eve.StartTime = rb.StartTime
-	eve.EndTime = rb.EndTime
-
+	eve := set(rb)
 	var id int64
 	if !m.app.Mode {
 		id, err = m.app.Repo.AddEvent(m.ctx, eve)
@@ -190,20 +178,10 @@ func (m *MyHandler) UpdateEvent(resp http.ResponseWriter, req *http.Request) {
 		if err = json.NewEncoder(resp).Encode("ID can't be zero or nil value"); err != nil {
 			m.app.Log.Error("Encode error", zap.Error(err))
 		}
-
 		return
 	}
 
-	var eve storage.Event
-	eve.ID = rb.ID
-	eve.Owner = rb.Owner
-	eve.Title = rb.Title
-	eve.Description = rb.Description
-	eve.StartDate = rb.StartDate
-	eve.EndDate = rb.EndDate
-	eve.StartTime = rb.StartTime
-	eve.EndTime = rb.EndTime
-
+	eve := set(rb)
 	if !m.app.Mode {
 		err = m.app.Repo.UpdateEvent(m.ctx, eve)
 	} else {
@@ -216,6 +194,19 @@ func (m *MyHandler) UpdateEvent(resp http.ResponseWriter, req *http.Request) {
 	}
 	resp.Header().Set("Content-Type", "application/json; charset=utf-8")
 	resp.WriteHeader(http.StatusOK)
+}
+
+func set(req Event) storage.Event {
+	var eve storage.Event
+	eve.ID = req.ID
+	eve.Owner = req.Owner
+	eve.Title = req.Title
+	eve.Description = req.Description
+	eve.StartDate = req.StartDate
+	eve.EndDate = req.EndDate
+	eve.StartTime = req.StartTime
+	eve.EndTime = req.EndTime
+	return eve
 }
 
 type Event struct {

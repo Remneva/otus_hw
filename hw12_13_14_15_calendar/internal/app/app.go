@@ -20,3 +20,11 @@ func New(logger *zap.Logger, r storage.EventsStorage, c configs.Config) *App {
 	}
 	return &App{Mem: memorystorage.NewMap(), Repo: nil, Log: logger, Mode: c.Mode.MemMode}
 }
+
+func NewMemApp(logger *zap.Logger, c configs.Config) *App {
+	return &App{Mem: memorystorage.NewMap(), Repo: nil, Log: logger, Mode: c.Mode.MemMode}
+}
+
+func NewStoreApp(logger *zap.Logger, r storage.EventsStorage, c configs.Config) *App {
+	return &App{Mem: nil, Repo: r, Log: logger, Mode: c.Mode.MemMode}
+}

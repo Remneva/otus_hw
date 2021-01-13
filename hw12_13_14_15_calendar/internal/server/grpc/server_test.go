@@ -22,6 +22,21 @@ import (
 func TestStoreSuite(t *testing.T) {
 	suite.Run(t, new(StoreSuite))
 }
+
+type StoreSuite struct {
+	suite.Suite
+	mockCtl     *gomock.Controller
+	mockDB      *MockEventsStorage
+	store       *storage.EventsStorage
+	app         *app.App
+	start       time.Time
+	oneDayLater time.Time
+	ctx         context.Context
+	srv         Server
+	starttime   *timestamppb.Timestamp
+	endtime     *timestamppb.Timestamp
+}
+
 func (s *StoreSuite) TeardownTest() {
 	s.mockCtl.Finish()
 }
@@ -115,20 +130,6 @@ func (s *StoreSuite) TestDeleteEvent() {
 	}
 	e, _ := status.FromError(err)
 	s.Require().Equal(codes.OK, e.Code())
-}
-
-type StoreSuite struct {
-	suite.Suite
-	mockCtl     *gomock.Controller
-	mockDB      *MockEventsStorage
-	store       *storage.EventsStorage
-	app         *app.App
-	start       time.Time
-	oneDayLater time.Time
-	ctx         context.Context
-	srv         Server
-	starttime   *timestamppb.Timestamp
-	endtime     *timestamppb.Timestamp
 }
 
 func (s *StoreSuite) SetupTest() {
