@@ -23,7 +23,7 @@ type DomainStat map[string]int32
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	e, err := getUsers(r, domain)
 	if err != nil {
-		return nil, fmt.Errorf("get users error: %s", err)
+		return nil, fmt.Errorf("get users error: %w", err)
 	}
 	return countDomains(e, domain), nil
 }
@@ -43,7 +43,7 @@ func getUsers(r io.Reader, domain string) (result users, err error) {
 	for i, line := range lines {
 		u := User{}
 		if err := json.Unmarshal([]byte(line), &u); err != nil {
-			return nil, fmt.Errorf("unmarshal error: %s", err)
+			return nil, fmt.Errorf("unmarshal error: %w", err)
 		}
 		result[i] = u
 	}
