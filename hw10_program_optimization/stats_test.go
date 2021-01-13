@@ -46,8 +46,7 @@ func TestGetDomainStat(t *testing.T) {
 			Email: "ololo@trololo.com",
 		}
 		testdata := []User{u, u2}
-		result, err := countDomains(testdata, "com")
-		require.NoError(t, err)
+		result := countDomains(testdata, "com")
 		require.Equal(t, DomainStat{"trololo.com": 2}, result)
 	})
 
@@ -56,8 +55,7 @@ func TestGetDomainStat(t *testing.T) {
 			Email: "qwerty@TROLOLO.su",
 		}
 		testdata := []User{u}
-		result, err := countDomains(testdata, "com")
-		require.NoError(t, err)
+		result := countDomains(testdata, "com")
 		require.Equal(t, DomainStat{}, result)
 	})
 }

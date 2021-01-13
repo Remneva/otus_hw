@@ -3,6 +3,7 @@ package hw10_program_optimization //nolint:golint,stylecheck
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -20,13 +21,16 @@ type User struct {
 type DomainStat map[string]int32
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
-	e := getUsers(r, domain)
-	return countDomains(e, domain)
+	e, err := getUsers(r, domain)
+	if err != nil {
+		return nil, fmt.Errorf("get users error: %s", err)
+	}
+	return countDomains(e, domain), nil
 }
 
 type users []User
 
-func getUsers(r io.Reader, domain string) (result users) {
+func getUsers(r io.Reader, domain string) (result users, err error) {
 	scanner := bufio.NewScanner(r)
 	lines := make([]string, 0)
 	for scanner.Scan() {
@@ -39,15 +43,15 @@ func getUsers(r io.Reader, domain string) (result users) {
 	for i, line := range lines {
 		u := User{}
 		if err := json.Unmarshal([]byte(line), &u); err != nil {
-			return nil
+			return nil, fmt.Errorf("unmarshal error: %s", err)
 		}
 		result[i] = u
 	}
 
-	return result
+	return result, nil
 }
 
-func countDomains(u users, domain string) (DomainStat, error) {
+func countDomains(u users, domain string) DomainStat {
 	result := make(DomainStat)
 	for _, user := range u {
 		matched := strings.Contains(user.Email, domain)
@@ -59,5 +63,5 @@ func countDomains(u users, domain string) (DomainStat, error) {
 			result[domain] = num
 		}
 	}
-	return result, nil
+	return result
 }
