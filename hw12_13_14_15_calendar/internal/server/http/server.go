@@ -47,10 +47,10 @@ func NewServer(mux *http.ServeMux, port string, log *zap.Logger) (*Server, error
 func NewHandler(ctx context.Context, app *app.App) (*MyHandler, *http.ServeMux) {
 	handler := &MyHandler{ctx: ctx, app: app}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/set", requestLoggerMiddleware(handler, headerSetter(handler.SetEvent)))
-	mux.HandleFunc("/get", requestLoggerMiddleware(handler, headerSetter(handler.GetEvent)))
-	mux.HandleFunc("/delete", requestLoggerMiddleware(handler, headerSetter(handler.DeleteEvent)))
-	mux.HandleFunc("/update", requestLoggerMiddleware(handler, headerSetter(handler.UpdateEvent)))
+	mux.HandleFunc("/set", handler.requestLoggerMiddleware(headerSetter(handler.SetEvent)))
+	mux.HandleFunc("/get", handler.requestLoggerMiddleware(headerSetter(handler.GetEvent)))
+	mux.HandleFunc("/delete", handler.requestLoggerMiddleware(headerSetter(handler.DeleteEvent)))
+	mux.HandleFunc("/update", handler.requestLoggerMiddleware(headerSetter(handler.UpdateEvent)))
 	return handler, mux
 }
 

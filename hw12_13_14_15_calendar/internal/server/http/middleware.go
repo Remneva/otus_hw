@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func requestLoggerMiddleware(m *MyHandler, h http.HandlerFunc) http.HandlerFunc {
+func (m *MyHandler) requestLoggerMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 		h.ServeHTTP(w, r)
