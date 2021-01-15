@@ -32,7 +32,7 @@ func NewHTTP(ctx context.Context, app *app.App, port string) (*Server, error) {
 }
 func NewServer(mux *http.ServeMux, port string, log *zap.Logger) (*Server, error) { //nolint
 	log.Info("http is running...")
-	server := &http.Server{ //nolint
+	server := &http.Server{
 		Addr:           port,
 		Handler:        mux,
 		ReadTimeout:    10 * time.Second,

@@ -33,7 +33,7 @@ func NewServer(app *app.App, address string) (*Server, error) {
 		return &Server{}, fmt.Errorf("database query failed: %w", err)
 	}
 	server := grpc.NewServer()
-	srv := &Server{ //nolint
+	srv := &Server{
 		app:    app,
 		server: server,
 		lsn:    lsn,
