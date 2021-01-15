@@ -55,8 +55,7 @@ func main() {
 	}
 
 	var http *internalhttp.Server
-	_, mux := internalhttp.NewHandler(ctx, application)
-	http, err = internalhttp.NewServer(mux, config.Port.HTTP, logg)
+	http, err = internalhttp.NewHTTP(ctx, application, config.Port.HTTP)
 	if err != nil {
 		logg.Fatal("failed to start http server: " + err.Error())
 	}

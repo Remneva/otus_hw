@@ -22,9 +22,17 @@ type MyHandler struct {
 	ctx context.Context
 }
 
+func NewHTTP(ctx context.Context, app *app.App, port string) (*Server, error) {
+	_, mux := NewHandler(ctx, app)
+	srv, err := NewServer(mux, port, app.Log)
+	if err != nil {
+		return nil, fmt.Errorf("server creation error: %w", err)
+	}
+	return srv, nil
+}
 func NewServer(mux *http.ServeMux, port string, log *zap.Logger) (*Server, error) { //nolint
 	log.Info("http is running...")
-	server := &http.Server{
+	server := &http.Server{ //nolint
 		Addr:           port,
 		Handler:        mux,
 		ReadTimeout:    10 * time.Second,
@@ -49,7 +57,7 @@ func NewHandler(ctx context.Context, app *app.App) (*MyHandler, *http.ServeMux) 
 func (s *Server) Start() error {
 	err := s.server.ListenAndServe()
 	if err != nil {
-		return fmt.Errorf("creating a new ServerTransport failed: %s", err)
+		return fmt.Errorf("creating a new ServerTransport failed: %w", err)
 	}
 	return nil
 }
@@ -57,7 +65,7 @@ func (s *Server) Start() error {
 func (s *Server) Stop(ctx context.Context) error {
 	err := s.server.Shutdown(ctx)
 	if err != nil {
-		return fmt.Errorf("shutdown error: %s", err)
+		return fmt.Errorf("shutdown error: %w", err)
 	}
 	return nil
 }

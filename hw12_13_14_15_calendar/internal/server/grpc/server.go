@@ -30,10 +30,10 @@ func NewServer(app *app.App, address string) (*Server, error) {
 	lsn, err := net.Listen("tcp", address)
 	if err != nil {
 		app.Log.Error("Listening Error", zap.Error(err))
-		return &Server{}, fmt.Errorf("database query failed: %s", err)
+		return &Server{}, fmt.Errorf("database query failed: %w", err)
 	}
 	server := grpc.NewServer()
-	srv := &Server{
+	srv := &Server{ //nolint
 		app:    app,
 		server: server,
 		lsn:    lsn,
@@ -46,7 +46,7 @@ func (s *Server) Start() error {
 	s.app.Log.Info("starting grpc server", zap.String("Addr", s.lsn.Addr().String()))
 	if err := s.server.Serve(s.lsn); err != nil {
 		s.app.Log.Error("Error", zap.Error(err))
-		return fmt.Errorf("creating a new ServerTransport failed: %s", err)
+		return fmt.Errorf("creating a new ServerTransport failed: %w", err)
 	}
 	return nil
 }

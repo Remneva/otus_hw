@@ -8,7 +8,7 @@ import (
 )
 
 func requestLoggerMiddleware(m *MyHandler, h http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 		h.ServeHTTP(w, r)
 		duration := time.Since(startTime)
@@ -17,7 +17,7 @@ func requestLoggerMiddleware(m *MyHandler, h http.HandlerFunc) http.HandlerFunc 
 			zap.String("Method", r.Method),
 			zap.String("Host", r.Host),
 			zap.String("Raw path URL", r.URL.RawPath))
-	})
+	}
 }
 
 var headers = map[string]string{

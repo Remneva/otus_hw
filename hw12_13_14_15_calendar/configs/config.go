@@ -49,7 +49,7 @@ type AMQPConfig struct {
 func Read(path string) (c Config, err error) {
 	_, err = toml.DecodeFile(path, &c)
 	if err != nil {
-		return Config{}, fmt.Errorf("decodeFile failed: %s", err)
+		return Config{}, fmt.Errorf("decodeFile failed: %w", err)
 	}
 	return
 }
