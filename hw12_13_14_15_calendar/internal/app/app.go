@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	memorystorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
@@ -47,7 +49,7 @@ func (a *App) Create(ctx context.Context, eve storage.Event) (int64, error) {
 	id, err := a.Repo.AddEvent(ctx, eve)
 	if err != nil {
 		a.Log.Info("Create Event method", zap.String("error", err.Error()))
-		return 0, err
+		return 0, fmt.Errorf("create error: %w", err)
 	}
 	return id, nil
 }
@@ -56,7 +58,7 @@ func (a *App) CreateInMemory(ctx context.Context, eve storage.Event) (int64, err
 	id, err := a.Mem.AddEvent(ctx, eve)
 	if err != nil {
 		a.Log.Info("Create Event memory method", zap.String("error", err.Error()))
-		return 0, err
+		return 0, fmt.Errorf("create in memory error: %w", err)
 	}
 	return id, nil
 }
@@ -65,7 +67,7 @@ func (a *App) Update(ctx context.Context, eve storage.Event) error {
 	err := a.Repo.UpdateEvent(ctx, eve)
 	if err != nil {
 		a.Log.Info("Update Event psql method", zap.String("error", err.Error()))
-		return err
+		return fmt.Errorf("update error: %w", err)
 	}
 	return nil
 }
@@ -74,7 +76,7 @@ func (a *App) UpdateInMemory(ctx context.Context, eve storage.Event) error {
 	err := a.Mem.UpdateEvent(ctx, eve)
 	if err != nil {
 		a.Log.Info("Update Event memory method", zap.String("error", err.Error()))
-		return err
+		return fmt.Errorf("update in memory error: %w", err)
 	}
 	return nil
 }
@@ -83,7 +85,7 @@ func (a *App) Delete(ctx context.Context, id int64) error {
 	err := a.Repo.DeleteEvent(ctx, id)
 	if err != nil {
 		a.Log.Error("Delete Event psql method", zap.Error(err))
-		return err
+		return fmt.Errorf("delete error: %w", err)
 	}
 	return nil
 }
@@ -92,7 +94,7 @@ func (a *App) DeleteInMemory(ctx context.Context, id int64) error {
 	err := a.Mem.DeleteEvent(ctx, id)
 	if err != nil {
 		a.Log.Error("Delete Event memory method", zap.Error(err))
-		return err
+		return fmt.Errorf("delete in memory error: %w", err)
 	}
 	return nil
 }
@@ -100,8 +102,8 @@ func (a *App) DeleteInMemory(ctx context.Context, id int64) error {
 func (a *App) Get(ctx context.Context, id int64) (storage.Event, error) {
 	eve, err := a.Repo.GetEvent(ctx, id)
 	if err != nil {
-		a.Log.Error("Delete Event psql method", zap.Error(err))
-		return eve, err
+		a.Log.Error("Get Event psql method", zap.Error(err))
+		return eve, fmt.Errorf("get error: %w", err)
 	}
 	return eve, nil
 }
@@ -109,8 +111,8 @@ func (a *App) Get(ctx context.Context, id int64) (storage.Event, error) {
 func (a *App) GetInMemory(ctx context.Context, id int64) (storage.Event, error) {
 	eve, err := a.Mem.GetEvent(ctx, id)
 	if err != nil {
-		a.Log.Error("Delete Event memory method", zap.Error(err))
-		return eve, err
+		a.Log.Error("Get Event memory method", zap.Error(err))
+		return eve, fmt.Errorf("get in memory error: %w", err)
 	}
 	return eve, nil
 }
