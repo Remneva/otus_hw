@@ -1,10 +1,10 @@
 package configs
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -49,7 +49,7 @@ type AMQPConfig struct {
 func Read(path string) (c Config, err error) {
 	_, err = toml.DecodeFile(path, &c)
 	if err != nil {
-		return Config{}, errors.Wrap(err, "DecodeFile failed")
+		return Config{}, fmt.Errorf("decodeFile failed: %s", err)
 	}
 	return
 }

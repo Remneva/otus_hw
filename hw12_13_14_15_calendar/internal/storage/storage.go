@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	// Postgres driver.
-	_ "github.com/jackc/pgx/v4/stdlib"
 	"go.uber.org/zap"
 )
 
@@ -14,7 +12,7 @@ import (
 
 type BaseStorage interface {
 	Connect(ctx context.Context, dsn string, l *zap.Logger) error
-	Close(ctx context.Context) error
+	Close() error
 	EventsStorage
 }
 

@@ -3,7 +3,7 @@ CREATE TABLE events (
     id serial primary key,
     owner integer,
     title text,
-    descr text,
+    description text,
     start_date date not null,
     start_time timestamp not null default now(),
     end_date date not null,
@@ -14,7 +14,7 @@ CREATE TABLE events (
 --create index owner_idx on events (owner);
 --create index start_idx on events using btree (start_date, start_time);
 
-INSERT INTO events (owner, title, descr, start_date, start_time, end_date, end_time)
+INSERT INTO events (owner, title, description, start_date, start_time, end_date, end_time)
 VALUES
 (0001, 'Atlcahualo', 'Ceasing of Water, Rising Trees', '2020-03-01', now(), '2020-03-20', now()),
 (0002, 'Tlacaxipehualiztli', 'Rites of Fertility; Xipe-Totec', '2020-03-21', now(), '2020-04-09', now()),

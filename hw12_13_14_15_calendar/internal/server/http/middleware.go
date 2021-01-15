@@ -19,3 +19,17 @@ func requestLoggerMiddleware(m *MyHandler, h http.HandlerFunc) http.HandlerFunc 
 			zap.String("Raw path URL", r.URL.RawPath))
 	})
 }
+
+var headers = map[string]string{
+	"Content-Type": "application/json; charset=utf-8",
+	"test":         "test",
+}
+
+func headerSetter(fn func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		for k, v := range headers {
+			rw.Header().Set(k, v)
+		}
+		fn(rw, req)
+	}
+}

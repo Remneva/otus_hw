@@ -3,25 +3,18 @@ package internalhttp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
-func New() Server {
-	return Server{}
-}
-
 type Server struct {
 	server *http.Server
-}
-
-type Application interface {
 }
 
 type MyHandler struct {
@@ -46,17 +39,17 @@ func NewServer(mux *http.ServeMux, port string, log *zap.Logger) (*Server, error
 func NewHandler(ctx context.Context, app *app.App) (*MyHandler, *http.ServeMux) {
 	handler := &MyHandler{ctx: ctx, app: app}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/set", requestLoggerMiddleware(handler, handler.SetEvent))
-	mux.HandleFunc("/get", requestLoggerMiddleware(handler, handler.GetEvent))
-	mux.HandleFunc("/delete", requestLoggerMiddleware(handler, handler.DeleteEvent))
-	mux.HandleFunc("/update", requestLoggerMiddleware(handler, handler.UpdateEvent))
+	mux.HandleFunc("/set", requestLoggerMiddleware(handler, headerSetter(handler.SetEvent)))
+	mux.HandleFunc("/get", requestLoggerMiddleware(handler, headerSetter(handler.GetEvent)))
+	mux.HandleFunc("/delete", requestLoggerMiddleware(handler, headerSetter(handler.DeleteEvent)))
+	mux.HandleFunc("/update", requestLoggerMiddleware(handler, headerSetter(handler.UpdateEvent)))
 	return handler, mux
 }
 
 func (s *Server) Start() error {
 	err := s.server.ListenAndServe()
 	if err != nil {
-		return errors.Wrap(err, "creating a new ServerTransport failed")
+		return fmt.Errorf("creating a new ServerTransport failed: %s", err)
 	}
 	return nil
 }
@@ -64,7 +57,7 @@ func (s *Server) Start() error {
 func (s *Server) Stop(ctx context.Context) error {
 	err := s.server.Shutdown(ctx)
 	if err != nil {
-		return errors.New("shutdown error")
+		return fmt.Errorf("shutdown error: %s", err)
 	}
 	return nil
 }
@@ -81,16 +74,15 @@ func (m *MyHandler) SetEvent(resp http.ResponseWriter, req *http.Request) {
 	eve := set(rb)
 	var id int64
 	if !m.app.Mode {
-		id, err = m.app.Repo.AddEvent(m.ctx, eve)
+		id, err = m.app.Create(m.ctx, eve)
 	} else {
-		id, err = m.app.Mem.AddEvent(m.ctx, eve)
+		id, err = m.app.CreateInMemory(m.ctx, eve)
 	}
 	if err != nil {
 		m.app.Log.Info("BadRequest", zap.String("error", err.Error()))
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	resp.Header().Set("Content-Type", "application/json; charset=utf-8")
 	resp.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(resp).Encode(id); err != nil {
 		m.app.Log.Error("Encode error", zap.Error(err))
@@ -110,9 +102,9 @@ func (m *MyHandler) GetEvent(resp http.ResponseWriter, req *http.Request) {
 	}
 	var result storage.Event
 	if !m.app.Mode {
-		result, err = m.app.Repo.GetEvent(m.ctx, id)
+		result, err = m.app.Get(m.ctx, id)
 	} else {
-		result, err = m.app.Mem.GetEvent(m.ctx, id)
+		result, err = m.app.GetInMemory(m.ctx, id)
 	}
 	if err != nil {
 		m.app.Log.Info("BadRequest", zap.String("error", err.Error()))
@@ -129,7 +121,6 @@ func (m *MyHandler) GetEvent(resp http.ResponseWriter, req *http.Request) {
 		EndDate:     result.EndDate,
 		EndTime:     result.EndTime,
 	}
-	resp.Header().Set("Content-Type", "application/json; charset=utf-8")
 	resp.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(resp).Encode(&response); err != nil {
 		m.app.Log.Error("Encode error", zap.Error(err))
@@ -147,16 +138,15 @@ func (m *MyHandler) DeleteEvent(resp http.ResponseWriter, req *http.Request) {
 		m.app.Log.Error("Unmarshal error", zap.Error(err))
 	}
 	if !m.app.Mode {
-		err = m.app.Repo.DeleteEvent(m.ctx, id)
+		err = m.app.Delete(m.ctx, id)
 	} else {
-		err = m.app.Mem.DeleteEvent(m.ctx, id)
+		err = m.app.DeleteInMemory(m.ctx, id)
 	}
 	if err != nil {
 		m.app.Log.Info("BadRequest", zap.String("error", err.Error()))
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	resp.Header().Set("Content-Type", "application/json; charset=utf-8")
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -171,7 +161,7 @@ func (m *MyHandler) UpdateEvent(resp http.ResponseWriter, req *http.Request) {
 	if err = json.Unmarshal(body, &rb); err != nil {
 		m.app.Log.Error("Unmarshal error", zap.Error(err))
 	}
-	m.app.Log.Info("Update grpc method", zap.Int("req", int(rb.ID)))
+	m.app.Log.Info("Update http method", zap.Int("req", int(rb.ID)))
 	if rb.ID == 0 {
 		m.app.Log.Info("BadRequest", zap.Int("ID can't be zero or nil value", int(rb.ID)))
 		resp.WriteHeader(http.StatusBadRequest)
@@ -183,16 +173,15 @@ func (m *MyHandler) UpdateEvent(resp http.ResponseWriter, req *http.Request) {
 
 	eve := set(rb)
 	if !m.app.Mode {
-		err = m.app.Repo.UpdateEvent(m.ctx, eve)
+		err = m.app.Update(m.ctx, eve)
 	} else {
-		err = m.app.Mem.UpdateEvent(m.ctx, eve)
+		err = m.app.UpdateInMemory(m.ctx, eve)
 	}
 	if err != nil {
 		m.app.Log.Info("BadRequest", zap.String("error", err.Error()))
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	resp.Header().Set("Content-Type", "application/json; charset=utf-8")
 	resp.WriteHeader(http.StatusOK)
 }
 

@@ -3,6 +3,7 @@ package memorystorage
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 )
@@ -20,6 +21,7 @@ var _ storage.EventsStorage = (*EventMap)(nil)
 
 type EventMap struct {
 	ev map[int]storage.Event
+	mu sync.Mutex
 }
 
 func (e *EventMap) GetEvents(ctx context.Context) ([]storage.Event, error) {
@@ -42,9 +44,12 @@ func (e *EventMap) GetEvent(ctx context.Context, id int64) (storage.Event, error
 }
 
 func (e *EventMap) AddEvent(ctx context.Context, ev storage.Event) (int64, error) {
+	e.mu.Lock()
+	id = len(e.ev)
 	id++
-	e.ev[id] = ev
+	e.mu.Unlock()
 	ev.ID = int64(id)
+	e.ev[id] = ev
 	return int64(id), nil
 }
 

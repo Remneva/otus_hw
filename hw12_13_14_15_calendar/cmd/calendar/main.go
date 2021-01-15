@@ -72,7 +72,6 @@ func main() {
 		defer wg.Done()
 		if err = http.Start(); err != nil {
 			logg.Error("failed to start http server: " + err.Error())
-			os.Exit(1)
 		}
 	}()
 
@@ -80,7 +79,6 @@ func main() {
 		defer wg.Done()
 		if err = grpc.Start(); err != nil {
 			logg.Error("failed to start grpc server: " + err.Error())
-			os.Exit(1)
 		}
 	}()
 	go signalChan(application, http, grpc)
@@ -92,7 +90,6 @@ func signalChan(app *app.App, http *internalhttp.Server, grpc *internalgrpc.Serv
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	fmt.Printf("Got %v...\n", <-signals)
-	signal.Stop(signals)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
@@ -101,9 +98,11 @@ func signalChan(app *app.App, http *internalhttp.Server, grpc *internalgrpc.Serv
 	if err != nil {
 		app.Log.Error(err.Error())
 	}
+	app.Log.Info("http server shutdown")
+
 	err = grpc.Stop()
 	if err != nil {
 		app.Log.Error(err.Error())
 	}
-
+	app.Log.Info("grpc server shutdown")
 }
