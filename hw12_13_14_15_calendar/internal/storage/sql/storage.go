@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+
 	// Postgres driver.
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"go.uber.org/zap"
@@ -16,7 +17,7 @@ var _ storage.BaseStorage = (*Storage)(nil)
 type Storage struct {
 	db *sql.DB
 	l  *zap.Logger
-	s  storage.EventsStorage
+	storage.EventsStorage
 }
 
 func (s *Storage) Connect(ctx context.Context, dsn string, l *zap.Logger) (err error) {
@@ -24,12 +25,12 @@ func (s *Storage) Connect(ctx context.Context, dsn string, l *zap.Logger) (err e
 	s.db, err = sql.Open("pgx", dsn)
 	if err != nil {
 		s.l.Error("Error", zap.String("Open connection", err.Error()))
-		return fmt.Errorf("open connection error %s", err.Error())
+		return fmt.Errorf("open connection error %w", err)
 	}
 	err = s.db.PingContext(ctx)
 	if err != nil {
 		s.l.Error("Error", zap.String("Ping", err.Error()))
-		return fmt.Errorf("ping error: %s", err)
+		return fmt.Errorf("ping error: %w", err)
 	}
 	return nil
 }
@@ -44,7 +45,7 @@ func (s *Storage) DeleteEvent(ctx context.Context, id int64) error {
 		`, id)
 	if err != nil {
 		s.l.Error("Error", zap.String("Connection", err.Error()))
-		return fmt.Errorf("open connection error %s", err.Error())
+		return fmt.Errorf("open connection error %w", err)
 	}
 	s.l.Info("Event Deleted", zap.Int64("id", id))
 	return nil
@@ -55,9 +56,12 @@ func (s *Storage) UpdateEvent(ctx context.Context, ev storage.Event) error {
 	result, err := s.db.ExecContext(ctx, query, ev.Owner, ev.Title, ev.Description, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime, ev.ID)
 	if err != nil {
 		s.l.Error("Exec query error", zap.Error(err))
-		return fmt.Errorf("open connection error %s", err.Error())
+		return fmt.Errorf("open connection error %w", err)
 	}
 	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("get rows affected error %w", err)
+	}
 	if rowsAffected > 0 {
 		s.l.Info("Event updated", zap.Int64("id", ev.ID))
 	} else {
@@ -81,7 +85,7 @@ func (s *Storage) GetEvent(ctx context.Context, id int64) (storage.Event, error)
 		&ev.EndDate,
 		&ev.EndTime)
 	if err != nil {
-		return ev, fmt.Errorf("open connection error %s", err.Error())
+		return ev, fmt.Errorf("open connection error %w", err)
 	}
 	return ev, nil
 }
@@ -91,7 +95,7 @@ func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 		SELECT id, owner, title, description, start_date, start_time, end_date, end_time FROM events
 	`)
 	if err != nil {
-		return nil, fmt.Errorf("open connection error %s", err.Error())
+		return nil, fmt.Errorf("open connection error %w", err)
 	}
 	defer rows.Close()
 	var events []storage.Event
@@ -108,7 +112,7 @@ func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 			&ev.EndTime,
 		); err != nil {
 			s.l.Error("Get event error", zap.String("query", rows.Err().Error()))
-			return nil, fmt.Errorf("open connection error %s", err.Error())
+			return nil, fmt.Errorf("open connection error %w", err)
 		}
 		events = append(events, ev)
 	}
@@ -120,13 +124,13 @@ func (s *Storage) AddEvent(ctx context.Context, ev storage.Event) (int64, error)
 VALUES($1, $2, $3, $4, $5, $6, $7)`
 	_, err := s.db.ExecContext(ctx, query, ev.Owner, ev.Title, ev.Description, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime)
 	if err != nil {
-		return 0, fmt.Errorf("open connection error %s", err.Error())
+		return 0, fmt.Errorf("open connection error %w", err)
 	}
 	var id int64
 	err = s.db.QueryRowContext(ctx, `
 		SELECT id FROM events ORDER BY id DESC LIMIT 1`).Scan(&id)
 	if err != nil {
-		return 0, fmt.Errorf("open connection error %s", err.Error())
+		return 0, fmt.Errorf("open connection error %w", err)
 	}
 	s.l.Info("Event Created", zap.Int64("id", id))
 	return id, nil

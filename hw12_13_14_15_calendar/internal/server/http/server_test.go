@@ -50,6 +50,7 @@ func (s *StoreSuite) TestCreate() {
 		EndTime:     s.oneDayLater,
 	}
 	event := storage.Event{
+		ID:          111,
 		Title:       "test title",
 		Description: "test test test",
 		StartDate:   "2020-03-01",
