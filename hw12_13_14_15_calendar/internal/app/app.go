@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/configs"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	memorystorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
 	"go.uber.org/zap"

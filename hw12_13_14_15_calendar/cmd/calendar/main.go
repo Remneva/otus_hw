@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/configs"
 	srv "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server"
 	internalgrpc "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
@@ -24,7 +24,7 @@ import (
 var config string
 
 func init() {
-	flag.StringVar(&config, "config", "./internal/configs/config.toml", "Path to configuration file")
+	flag.StringVar(&config, "config", "./configs/config.toml", "Path to configuration file")
 }
 
 func main() {

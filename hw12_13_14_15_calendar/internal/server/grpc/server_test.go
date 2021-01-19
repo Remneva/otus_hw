@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/pb"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/logger"
