@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/logger"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zapcore"
 )
 
 func TestMap(t *testing.T) {
@@ -20,13 +22,9 @@ func TestMap(t *testing.T) {
 	t.Run("Events add to map", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		e := NewMap()
-		//	var ev map[int]storage.Event
-
-		//eve := []e.ev{ev1, ev2, ev3}
-		//for _, v := range e.ev {
-		//	in <- v
-		//}
+		var z zapcore.Level
+		logg, _ := logger.NewLogger(z, "/dev/null")
+		e := NewMap(logg)
 		_, err := e.AddEvent(ctx, ev1)
 		_, err = e.AddEvent(ctx, ev2)
 		_, err = e.AddEvent(ctx, ev3)
@@ -53,7 +51,9 @@ func TestMap(t *testing.T) {
 	t.Run("No such event in map", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		e := NewMap()
+		var z zapcore.Level
+		logg, _ := logger.NewLogger(z, "/dev/null")
+		e := NewMap(logg)
 
 		_, error := e.GetEvent(ctx, 10)
 		require.EqualError(t, ErrNoSuchEvent, error.Error())

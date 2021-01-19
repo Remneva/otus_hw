@@ -7,12 +7,13 @@
 package pb
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -304,14 +305,14 @@ var file_EventService_proto_goTypes = []interface{}{
 var file_EventService_proto_depIdxs = []int32{
 	3, // 0: event.Event.starttime:type_name -> google.protobuf.Timestamp
 	3, // 1: event.Event.endtime:type_name -> google.protobuf.Timestamp
-	1, // 2: event.Calendar.GetEvent:input_type -> event.ID
+	1, // 2: event.Calendar.getEvent:input_type -> event.ID
 	0, // 3: event.Calendar.AddEvent:input_type -> event.Event
-	0, // 4: event.Calendar.UpdateEvent:input_type -> event.Event
-	1, // 5: event.Calendar.DeleteEvent:input_type -> event.ID
-	0, // 6: event.Calendar.GetEvent:output_type -> event.Event
+	0, // 4: event.Calendar.updateEvent:input_type -> event.Event
+	1, // 5: event.Calendar.deleteEvent:input_type -> event.ID
+	0, // 6: event.Calendar.getEvent:output_type -> event.Event
 	1, // 7: event.Calendar.AddEvent:output_type -> event.ID
-	1, // 8: event.Calendar.UpdateEvent:output_type -> event.ID
-	4, // 9: event.Calendar.DeleteEvent:output_type -> google.protobuf.Empty
+	1, // 8: event.Calendar.updateEvent:output_type -> event.ID
+	4, // 9: event.Calendar.deleteEvent:output_type -> google.protobuf.Empty
 	6, // [6:10] is the sub-list for method output_type
 	2, // [2:6] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name

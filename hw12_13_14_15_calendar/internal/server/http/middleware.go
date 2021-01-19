@@ -12,7 +12,7 @@ func (m *MyHandler) requestLoggerMiddleware(h http.HandlerFunc) http.HandlerFunc
 		startTime := time.Now()
 		h.ServeHTTP(w, r)
 		duration := time.Since(startTime)
-		m.app.Log.Info("Request INFO",
+		m.log.Info("Request INFO",
 			zap.Duration("Duration", duration),
 			zap.String("Method", r.Method),
 			zap.String("Host", r.Host),
@@ -22,7 +22,6 @@ func (m *MyHandler) requestLoggerMiddleware(h http.HandlerFunc) http.HandlerFunc
 
 var headers = map[string]string{
 	"Content-Type": "application/json; charset=utf-8",
-	"test":         "test",
 }
 
 func headerSetter(fn func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {

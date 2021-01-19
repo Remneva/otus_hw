@@ -9,28 +9,33 @@ import (
 	"time"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
+	srv "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"go.uber.org/zap"
 )
 
 type Server struct {
 	server *http.Server
+	log    *zap.Logger
 }
+
+var _ srv.Stopper = (*Server)(nil)
 
 type MyHandler struct {
 	app *app.App
 	ctx context.Context
+	log *zap.Logger
 }
 
-func NewHTTP(ctx context.Context, app *app.App, port string) (*Server, error) {
-	_, mux := NewHandler(ctx, app)
-	srv, err := NewServer(mux, port, app.Log)
+func NewHTTP(ctx context.Context, app *app.App, l *zap.Logger, port string) (*Server, error) {
+	_, mux := newHandler(ctx, app, l)
+	srv, err := newServer(mux, port, l)
 	if err != nil {
 		return nil, fmt.Errorf("server creation error: %w", err)
 	}
 	return srv, nil
 }
-func NewServer(mux *http.ServeMux, port string, log *zap.Logger) (*Server, error) { //nolint
+func newServer(mux *http.ServeMux, port string, log *zap.Logger) (*Server, error) { //nolint
 	log.Info("http is running...")
 	server := &http.Server{
 		Addr:           port,
@@ -41,28 +46,27 @@ func NewServer(mux *http.ServeMux, port string, log *zap.Logger) (*Server, error
 	}
 	srv := &Server{
 		server: server,
+		log:    log,
 	}
 	return srv, nil
 }
-func NewHandler(ctx context.Context, app *app.App) (*MyHandler, *http.ServeMux) {
-	handler := &MyHandler{ctx: ctx, app: app}
+func newHandler(ctx context.Context, app *app.App, l *zap.Logger) (*MyHandler, *http.ServeMux) {
+	handler := &MyHandler{ctx: ctx, app: app, log: l}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/set", handler.requestLoggerMiddleware(headerSetter(handler.SetEvent)))
-	mux.HandleFunc("/get", handler.requestLoggerMiddleware(headerSetter(handler.GetEvent)))
-	mux.HandleFunc("/delete", handler.requestLoggerMiddleware(headerSetter(handler.DeleteEvent)))
-	mux.HandleFunc("/update", handler.requestLoggerMiddleware(headerSetter(handler.UpdateEvent)))
+
+	mux.HandleFunc("/set", handler.requestLoggerMiddleware(headerSetter(handler.setEvent)))
+	mux.HandleFunc("/get", handler.requestLoggerMiddleware(headerSetter(handler.getEvent)))
+	mux.HandleFunc("/delete", handler.requestLoggerMiddleware(headerSetter(handler.deleteEvent)))
+	mux.HandleFunc("/update", handler.requestLoggerMiddleware(headerSetter(handler.updateEvent)))
 	return handler, mux
 }
 
 func (s *Server) Start() error {
-	err := s.server.ListenAndServe()
-	if err != nil {
-		return fmt.Errorf("creating a new ServerTransport failed: %w", err)
-	}
-	return nil
+	return s.server.ListenAndServe()
 }
 
 func (s *Server) Stop(ctx context.Context) error {
+	s.log.Info("http server shutdown")
 	err := s.server.Shutdown(ctx)
 	if err != nil {
 		return fmt.Errorf("shutdown error: %w", err)
@@ -70,52 +74,70 @@ func (s *Server) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (m *MyHandler) SetEvent(resp http.ResponseWriter, req *http.Request) {
+func (m *MyHandler) setEvent(resp http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		m.app.Log.Info("BadRequest", zap.String("ReadAll", err.Error()))
+		m.log.Error("BadRequest", zap.Error(err))
+		resp.WriteHeader(http.StatusBadRequest)
+		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
+		return
 	}
 	rb := Event{}
 	if err = json.Unmarshal(body, &rb); err != nil {
-		m.app.Log.Error("Unmarshal error", zap.Error(err))
-	}
-	eve := set(rb)
-	var id int64
-	if !m.app.Mode {
-		id, err = m.app.Create(m.ctx, eve)
-	} else {
-		id, err = m.app.CreateInMemory(m.ctx, eve)
-	}
-	if err != nil {
-		m.app.Log.Info("BadRequest", zap.String("error", err.Error()))
+		m.log.Error("Unmarshal error", zap.Error(err))
 		resp.WriteHeader(http.StatusBadRequest)
+		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
+		return
+	}
+	eve := parseToEventStorageStruct(rb)
+	var id int64
+	id, err = m.app.Create(m.ctx, eve)
+	if err != nil {
+		m.log.Info("BadRequest", zap.String("error", err.Error()))
+		resp.WriteHeader(http.StatusBadRequest)
+		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
 		return
 	}
 	resp.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(resp).Encode(id); err != nil {
-		m.app.Log.Error("Encode error", zap.Error(err))
+		m.log.Error("Encode error", zap.Error(err))
 	}
 }
 
-func (m *MyHandler) GetEvent(resp http.ResponseWriter, req *http.Request) {
+func (m *MyHandler) getEvent(resp http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		m.app.Log.Info("BadRequest", zap.String("ReadAll", err.Error()))
+		m.log.Error("BadRequest", zap.Error(err))
+		resp.WriteHeader(http.StatusBadRequest)
+		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
+		return
 	}
 
 	r := JSONID{}
 	id := r.ID
 	if err = json.Unmarshal(body, &id); err != nil {
-		m.app.Log.Error("Unmarshal error", zap.Error(err))
+		m.log.Error("Unmarshal error", zap.Error(err))
+		resp.WriteHeader(http.StatusBadRequest)
+		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
+		return
 	}
 	var result storage.Event
-	if !m.app.Mode {
-		result, err = m.app.Get(m.ctx, id)
-	} else {
-		result, err = m.app.GetInMemory(m.ctx, id)
-	}
+	result, err = m.app.Get(m.ctx, id)
 	if err != nil {
-		m.app.Log.Info("BadRequest", zap.String("error", err.Error()))
+		m.log.Info("BadRequest", zap.String("error", err.Error()))
+		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -131,69 +153,76 @@ func (m *MyHandler) GetEvent(resp http.ResponseWriter, req *http.Request) {
 	}
 	resp.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(resp).Encode(&response); err != nil {
-		m.app.Log.Error("Encode error", zap.Error(err))
+		m.log.Error("Encode error", zap.Error(err))
 	}
 }
 
-func (m *MyHandler) DeleteEvent(resp http.ResponseWriter, req *http.Request) {
+func (m *MyHandler) deleteEvent(resp http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		m.app.Log.Info("BadRequest", zap.String("ReadAll", err.Error()))
+		m.log.Error("BadRequest", zap.Error(err))
+		resp.WriteHeader(http.StatusBadRequest)
+		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
+		return
 	}
 	r := JSONID{}
 	id := r.ID
 	if err = json.Unmarshal(body, &id); err != nil {
-		m.app.Log.Error("Unmarshal error", zap.Error(err))
+		m.log.Error("Unmarshal error", zap.Error(err))
+		resp.WriteHeader(http.StatusBadRequest)
+		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
+		return
 	}
-	if !m.app.Mode {
-		err = m.app.Delete(m.ctx, id)
-	} else {
-		err = m.app.DeleteInMemory(m.ctx, id)
-	}
+	err = m.app.Delete(m.ctx, id)
 	if err != nil {
-		m.app.Log.Info("BadRequest", zap.String("error", err.Error()))
+		m.log.Info("BadRequest", zap.String("error", err.Error()))
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	resp.WriteHeader(http.StatusOK)
+	if err = json.NewEncoder(resp).Encode("OK"); err != nil {
+		m.log.Error("Encode error", zap.Error(err))
+	}
 }
 
-func (m *MyHandler) UpdateEvent(resp http.ResponseWriter, req *http.Request) {
+func (m *MyHandler) updateEvent(resp http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		m.app.Log.Info("BadRequest", zap.String("ReadAll", err.Error()))
+		m.log.Info("BadRequest", zap.String("ReadAll", err.Error()))
 		resp.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	rb := Event{}
 	if err = json.Unmarshal(body, &rb); err != nil {
-		m.app.Log.Error("Unmarshal error", zap.Error(err))
+		m.log.Error("Unmarshal error", zap.Error(err))
 	}
-	m.app.Log.Info("Update http method", zap.Int("req", int(rb.ID)))
+	m.log.Info("Update http method", zap.Int("req", int(rb.ID)))
 	if rb.ID == 0 {
-		m.app.Log.Info("BadRequest", zap.Int("ID can't be zero or nil value", int(rb.ID)))
+		m.log.Info("BadRequest", zap.Int("ID can't be zero or nil value", int(rb.ID)))
 		resp.WriteHeader(http.StatusBadRequest)
 		if err = json.NewEncoder(resp).Encode("ID can't be zero or nil value"); err != nil {
-			m.app.Log.Error("Encode error", zap.Error(err))
+			m.log.Error("Encode error", zap.Error(err))
 		}
 		return
 	}
-
-	eve := set(rb)
-	if !m.app.Mode {
-		err = m.app.Update(m.ctx, eve)
-	} else {
-		err = m.app.UpdateInMemory(m.ctx, eve)
-	}
+	eve := parseToEventStorageStruct(rb)
+	err = m.app.Update(m.ctx, eve)
 	if err != nil {
-		m.app.Log.Info("BadRequest", zap.String("error", err.Error()))
+		m.log.Info("BadRequest", zap.String("error", err.Error()))
 		resp.WriteHeader(http.StatusBadRequest)
+		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
 		return
 	}
 	resp.WriteHeader(http.StatusOK)
 }
 
-func set(req Event) storage.Event {
+func parseToEventStorageStruct(req Event) storage.Event {
 	var eve storage.Event
 	eve.ID = req.ID
 	eve.Owner = req.Owner

@@ -10,19 +10,21 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/configs"
+	srv "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server"
 	internalgrpc "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/logger"
 	"github.com/apex/log"
+	"go.uber.org/zap"
 )
 
 var config string
 
 func init() {
-	flag.StringVar(&config, "config", "./configs/config.toml", "Path to configuration file")
+	flag.StringVar(&config, "config", "./internal/configs/config.toml", "Path to configuration file")
 }
 
 func main() {
@@ -44,23 +46,22 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	var application *app.App
+	storage := new(sql.Storage)
 	if !config.Mode.MemMode {
-		storage := new(sql.Storage)
-		application = app.NewStoreApp(logg, storage, config)
-		if err := storage.Connect(ctx, config.PSQL.DSN, logg); err != nil {
+		storage = sql.NewStorage(logg)
+		if err := storage.Connect(ctx, config.PSQL.DSN); err != nil {
 			logg.Fatal("fail connection")
 		}
-	} else {
-		application = app.NewMemApp(logg, config)
+		defer storage.Close()
 	}
-
+	application = app.New(logg, storage, config)
 	var http *internalhttp.Server
-	http, err = internalhttp.NewHTTP(ctx, application, config.Port.HTTP)
+	http, err = internalhttp.NewHTTP(ctx, application, logg, config.Port.HTTP)
 	if err != nil {
 		logg.Fatal("failed to start http server: " + err.Error())
 	}
 	var grpc *internalgrpc.Server
-	grpc, err = internalgrpc.NewServer(application, config.Port.Grpc)
+	grpc, err = internalgrpc.NewServer(application, logg, config.Port.Grpc)
 	if err != nil {
 		logg.Fatal("failed to start grpc server: " + err.Error())
 	}
@@ -80,28 +81,22 @@ func main() {
 			logg.Error("failed to start grpc server: " + err.Error())
 		}
 	}()
-	go signalChan(application, http, grpc)
+	go signalChan(logg, http, grpc)
 
 	wg.Wait()
 }
 
-func signalChan(app *app.App, http *internalhttp.Server, grpc *internalgrpc.Server) {
+func signalChan(log *zap.Logger, srv ...srv.Stopper) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	fmt.Printf("Got %v...\n", <-signals)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
-
-	err := http.Stop(ctx)
-	if err != nil {
-		app.Log.Error(err.Error())
+	for _, s := range srv {
+		err := s.Stop(ctx)
+		if err != nil {
+			log.Error("failed to stop", zap.Error(err))
+		}
 	}
-	app.Log.Info("http server shutdown")
-
-	err = grpc.Stop()
-	if err != nil {
-		app.Log.Error(err.Error())
-	}
-	app.Log.Info("grpc server shutdown")
 }

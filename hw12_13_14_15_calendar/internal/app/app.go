@@ -4,115 +4,65 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	memorystorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
 	"go.uber.org/zap"
 )
 
 type App struct {
-	Mode bool
-	Repo storage.EventsStorage
-	Mem  *memorystorage.EventMap
-	Log  *zap.Logger
+	repo storage.EventsStorage
+	log  *zap.Logger
 }
 
 var _ Application = (*App)(nil)
 
 type Application interface {
 	Create(ctx context.Context, eve storage.Event) (int64, error)
-	CreateInMemory(ctx context.Context, eve storage.Event) (int64, error)
 	Update(ctx context.Context, eve storage.Event) error
-	UpdateInMemory(ctx context.Context, eve storage.Event) error
 	Delete(ctx context.Context, id int64) error
-	DeleteInMemory(ctx context.Context, id int64) error
 	Get(ctx context.Context, id int64) (storage.Event, error)
-	GetInMemory(ctx context.Context, id int64) (storage.Event, error)
 }
 
-func New(logger *zap.Logger, r storage.EventsStorage, c configs.Config) *App {
+func New(logger *zap.Logger, r storage.BaseStorage, c configs.Config) *App { //nolint
 	if !c.Mode.MemMode {
-		return &App{Mem: nil, Repo: r, Log: logger, Mode: c.Mode.MemMode}
+		return &App{repo: r, log: logger}
 	}
-	return &App{Mem: memorystorage.NewMap(), Repo: nil, Log: logger, Mode: c.Mode.MemMode}
-}
-
-func NewMemApp(logger *zap.Logger, c configs.Config) *App {
-	return &App{Mem: memorystorage.NewMap(), Repo: nil, Log: logger, Mode: c.Mode.MemMode}
-}
-
-func NewStoreApp(logger *zap.Logger, r storage.EventsStorage, c configs.Config) *App {
-	return &App{Mem: nil, Repo: r, Log: logger, Mode: c.Mode.MemMode}
+	return &App{repo: memorystorage.NewMap(logger), log: logger}
 }
 
 func (a *App) Create(ctx context.Context, eve storage.Event) (int64, error) {
-	id, err := a.Repo.AddEvent(ctx, eve)
+	id, err := a.repo.AddEvent(ctx, eve)
 	if err != nil {
-		a.Log.Info("Create Event method", zap.String("error", err.Error()))
+		a.log.Info("Create Event method", zap.String("error", err.Error()))
 		return 0, fmt.Errorf("create error: %w", err)
 	}
 	return id, nil
 }
 
-func (a *App) CreateInMemory(ctx context.Context, eve storage.Event) (int64, error) {
-	id, err := a.Mem.AddEvent(ctx, eve)
-	if err != nil {
-		a.Log.Info("Create Event memory method", zap.String("error", err.Error()))
-		return 0, fmt.Errorf("create in memory error: %w", err)
-	}
-	return id, nil
-}
-
 func (a *App) Update(ctx context.Context, eve storage.Event) error {
-	err := a.Repo.UpdateEvent(ctx, eve)
+	err := a.repo.UpdateEvent(ctx, eve)
 	if err != nil {
-		a.Log.Info("Update Event psql method", zap.String("error", err.Error()))
+		a.log.Info("Update Event psql method", zap.String("error", err.Error()))
 		return fmt.Errorf("update error: %w", err)
 	}
 	return nil
 }
 
-func (a *App) UpdateInMemory(ctx context.Context, eve storage.Event) error {
-	err := a.Mem.UpdateEvent(ctx, eve)
-	if err != nil {
-		a.Log.Info("Update Event memory method", zap.String("error", err.Error()))
-		return fmt.Errorf("update in memory error: %w", err)
-	}
-	return nil
-}
-
 func (a *App) Delete(ctx context.Context, id int64) error {
-	err := a.Repo.DeleteEvent(ctx, id)
+	err := a.repo.DeleteEvent(ctx, id)
 	if err != nil {
-		a.Log.Error("Delete Event psql method", zap.Error(err))
+		a.log.Error("Delete Event psql method", zap.Error(err))
 		return fmt.Errorf("delete error: %w", err)
 	}
 	return nil
 }
 
-func (a *App) DeleteInMemory(ctx context.Context, id int64) error {
-	err := a.Mem.DeleteEvent(ctx, id)
-	if err != nil {
-		a.Log.Error("Delete Event memory method", zap.Error(err))
-		return fmt.Errorf("delete in memory error: %w", err)
-	}
-	return nil
-}
-
 func (a *App) Get(ctx context.Context, id int64) (storage.Event, error) {
-	eve, err := a.Repo.GetEvent(ctx, id)
+	eve, err := a.repo.GetEvent(ctx, id)
 	if err != nil {
-		a.Log.Error("Get Event psql method", zap.Error(err))
+		a.log.Error("Get Event psql method", zap.Error(err))
 		return eve, fmt.Errorf("get error: %w", err)
-	}
-	return eve, nil
-}
-
-func (a *App) GetInMemory(ctx context.Context, id int64) (storage.Event, error) {
-	eve, err := a.Mem.GetEvent(ctx, id)
-	if err != nil {
-		a.Log.Error("Get Event memory method", zap.Error(err))
-		return eve, fmt.Errorf("get in memory error: %w", err)
 	}
 	return eve, nil
 }

@@ -3,15 +3,13 @@ package storage
 import (
 	"context"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 // go get github.com/golang/mock/mockgen
 //go:generate mockgen -destination=mock_db_test.go -package=storage . EventsStorage
 
 type BaseStorage interface {
-	Connect(ctx context.Context, dsn string, l *zap.Logger) error
+	Connect(ctx context.Context, dsn string) error
 	Close() error
 	EventsStorage
 }

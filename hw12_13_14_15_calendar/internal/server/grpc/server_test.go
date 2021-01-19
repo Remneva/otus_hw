@@ -5,14 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/pb"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/logger"
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,6 +30,7 @@ type StoreSuite struct {
 	mockDB      *MockEventsStorage
 	store       *storage.EventsStorage
 	app         *app.App
+	l           *zap.Logger
 	start       time.Time
 	oneDayLater time.Time
 	ctx         context.Context
@@ -139,7 +141,7 @@ func (s *StoreSuite) SetupTest() {
 	var c configs.Config
 	logg, _ := logger.NewLogger(z, "/dev/null")
 	s.app = app.New(logg, s.mockDB, c)
-	s.srv = Server{app: s.app}
+	s.srv = Server{app: s.app, log: logg}
 	s.start = time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
 	s.oneDayLater = s.start.AddDate(0, 0, 1)
 	s.starttime, _ = ptypes.TimestampProto(s.start)

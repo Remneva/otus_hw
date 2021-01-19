@@ -36,3 +36,10 @@ lint: install-lint-deps
 generate:
 	mkdir -p internal/server/pb
 	protoc --proto_path=api/ --go_out=internal/server/pb  --go-grpc_out=internal/server/pb  api/*.proto
+
+lint:
+	golangci-lint run ./...
+
+lint-fix:
+	gofmt -w ./..
+	gci -w ./..

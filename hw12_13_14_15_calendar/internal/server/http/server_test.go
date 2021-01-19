@@ -9,14 +9,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/logger"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	_ "github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -33,6 +34,7 @@ type StoreSuite struct {
 	start       time.Time
 	oneDayLater time.Time
 	ctx         context.Context
+	log         *zap.Logger
 }
 
 func (s *StoreSuite) TeardownTest() {
@@ -60,16 +62,16 @@ func (s *StoreSuite) TestCreate() {
 	}
 	jsonBody, _ := json.Marshal(&request)
 
-	handler, _ := NewHandler(s.ctx, s.app)
+	handler, _ := newHandler(s.ctx, s.app, s.log)
 	ts := httptest.NewServer(handler)
 	ts.Close()
 
-	req := httptest.NewRequest("POST", "/set", bytes.NewBuffer(jsonBody))
+	req := httptest.NewRequest("POST", "/parseToEventStorageStruct", bytes.NewBuffer(jsonBody))
 	resp := httptest.NewRecorder()
 
 	s.mockDB.EXPECT().AddEvent(gomock.Any(), event).Return(int64(111), nil)
 
-	handler.SetEvent(resp, req)
+	handler.setEvent(resp, req)
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	var id int
@@ -101,7 +103,7 @@ func (s *StoreSuite) TestUpdate() {
 		EndTime:     s.oneDayLater,
 	}
 	jsonBody, _ := json.Marshal(&request)
-	handler, _ := NewHandler(s.ctx, s.app)
+	handler, _ := newHandler(s.ctx, s.app, s.log)
 	ts := httptest.NewServer(handler)
 	ts.Close()
 
@@ -110,7 +112,7 @@ func (s *StoreSuite) TestUpdate() {
 
 	s.mockDB.EXPECT().UpdateEvent(gomock.Any(), event).Return(nil)
 
-	handler.UpdateEvent(resp, req)
+	handler.updateEvent(resp, req)
 	s.Require().Equal(200, resp.Code)
 }
 
@@ -122,14 +124,14 @@ func (s *StoreSuite) TestUpdateErr() {
 	var errId = errors.New("ID can't be zero or nil value")
 	var errorResponse string
 
-	handler, _ := NewHandler(s.ctx, s.app)
+	handler, _ := newHandler(s.ctx, s.app, s.log)
 	ts := httptest.NewServer(handler)
 	ts.Close()
 
 	req := httptest.NewRequest("POST", "/update", bytes.NewBuffer(badRequestBody))
 	resp := httptest.NewRecorder()
 
-	handler.UpdateEvent(resp, req)
+	handler.updateEvent(resp, req)
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
@@ -154,7 +156,7 @@ func (s *StoreSuite) TestGetEvent() {
 	}
 	jsonBody, _ := json.Marshal(&request)
 
-	handler, _ := NewHandler(s.ctx, s.app)
+	handler, _ := newHandler(s.ctx, s.app, s.log)
 	ts := httptest.NewServer(handler)
 	ts.Close()
 
@@ -163,7 +165,7 @@ func (s *StoreSuite) TestGetEvent() {
 
 	s.mockDB.EXPECT().GetEvent(gomock.Any(), int64(111)).Return(event, nil)
 
-	handler.GetEvent(resp, req)
+	handler.getEvent(resp, req)
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	response := Event{}
@@ -183,6 +185,7 @@ func (s *StoreSuite) SetupTest() {
 	var z zapcore.Level
 	var c configs.Config
 	logg, _ := logger.NewLogger(z, "/dev/null")
+	s.log = logg
 	s.app = app.New(logg, s.mockDB, c)
 	s.start = time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
 	s.oneDayLater = s.start.AddDate(0, 0, 1)
