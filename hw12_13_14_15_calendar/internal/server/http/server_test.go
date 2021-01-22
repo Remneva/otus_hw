@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/logger"
@@ -66,7 +65,7 @@ func (s *StoreSuite) TestCreate() {
 	ts := httptest.NewServer(handler)
 	ts.Close()
 
-	req := httptest.NewRequest("POST", "/parseToEventStorageStruct", bytes.NewBuffer(jsonBody))
+	req := httptest.NewRequest("POST", "/set", bytes.NewBuffer(jsonBody))
 	resp := httptest.NewRecorder()
 
 	s.mockDB.EXPECT().AddEvent(gomock.Any(), event).Return(int64(111), nil)
@@ -74,13 +73,15 @@ func (s *StoreSuite) TestCreate() {
 	handler.setEvent(resp, req)
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	var id int
+	var id JSONID
 	err := json.Unmarshal(body, &id)
 	if err != nil {
 		s.Require().NoError(err)
 	}
+	var expected JSONID
+	expected.ID = 111
 	s.Require().Equal(200, resp.Code)
-	s.Require().Equal(111, id)
+	s.Require().Equal(expected, id)
 }
 
 func (s *StoreSuite) TestUpdate() {
@@ -183,10 +184,9 @@ func (s *StoreSuite) SetupTest() {
 	s.mockCtl = gomock.NewController(s.T())
 	s.mockDB = NewMockEventsStorage(s.mockCtl)
 	var z zapcore.Level
-	var c configs.Config
-	logg, _ := logger.NewLogger(z, "/dev/null")
+	logg, _ := logger.NewLogger(z, "dev", "/dev/null")
 	s.log = logg
-	s.app = app.NewApp(logg, s.mockDB, c)
+	s.app = app.NewApp(logg, s.mockDB)
 	s.start = time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
 	s.oneDayLater = s.start.AddDate(0, 0, 1)
 }

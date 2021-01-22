@@ -23,7 +23,7 @@ func TestMap(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		var z zapcore.Level
-		logg, _ := logger.NewLogger(z, "/dev/null")
+		logg, _ := logger.NewLogger(z, "dev", "/dev/null")
 		e := NewMap(logg)
 		_, err := e.AddEvent(ctx, ev1)
 		_, err = e.AddEvent(ctx, ev2)
@@ -52,7 +52,7 @@ func TestMap(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		var z zapcore.Level
-		logg, _ := logger.NewLogger(z, "/dev/null")
+		logg, _ := logger.NewLogger(z, "dev", "/dev/null")
 		e := NewMap(logg)
 
 		_, error := e.GetEvent(ctx, 10)

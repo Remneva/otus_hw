@@ -93,7 +93,7 @@ func (m *MyHandler) setEvent(resp http.ResponseWriter, req *http.Request) {
 	}
 	r := JSONID{}
 	r.ID = id
-	m.respond(id, resp)
+	m.respond(r, resp)
 }
 
 func (m *MyHandler) getEvent(resp http.ResponseWriter, req *http.Request) {

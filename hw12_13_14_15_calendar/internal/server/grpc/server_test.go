@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/pb"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
@@ -138,9 +137,8 @@ func (s *StoreSuite) SetupTest() {
 	s.mockCtl = gomock.NewController(s.T())
 	s.mockDB = NewMockEventsStorage(s.mockCtl)
 	var z zapcore.Level
-	var c configs.Config
-	logg, _ := logger.NewLogger(z, "/dev/null")
-	s.app = app.NewApp(logg, s.mockDB, c)
+	logg, _ := logger.NewLogger(z, "dev", "/dev/null")
+	s.app = app.NewApp(logg, s.mockDB)
 	s.srv = Server{app: s.app, log: logg}
 	s.start = time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
 	s.oneDayLater = s.start.AddDate(0, 0, 1)
