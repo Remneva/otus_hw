@@ -15,6 +15,7 @@ import (
 	srv "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server"
 	internalgrpc "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
+	memorystorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/logger"
 	"github.com/apex/log"
@@ -22,9 +23,11 @@ import (
 )
 
 var config string
+var env string
 
 func init() {
 	flag.StringVar(&config, "config", "./configs/config.toml", "Path to configuration file")
+	flag.StringVar(&env, "env", "dev", "environmental")
 }
 
 func main() {
@@ -39,22 +42,24 @@ func main() {
 		log.Fatal("failed to read config")
 	}
 
-	logg, err := logger.NewLogger(config.Logger.Level, config.Logger.Path)
+	logg, err := logger.NewLogger(config.Logger.Level, env, config.Logger.Path)
 	if err != nil {
 		log.Fatal("failed to create logger")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	var application *app.App
-	storage := new(sql.Storage)
 	if !config.Mode.MemMode {
-		storage = sql.NewStorage(logg)
+		storage := sql.NewStorage(logg)
 		if err := storage.Connect(ctx, config.PSQL.DSN); err != nil {
 			logg.Fatal("fail connection")
 		}
+		application = app.NewApp(logg, storage)
 		defer storage.Close()
+	} else {
+		storage := memorystorage.NewMap(logg)
+		application = app.NewApp(logg, storage)
 	}
-	application = app.New(logg, storage, config)
 	var http *internalhttp.Server
 	http, err = internalhttp.NewHTTP(ctx, application, logg, config.Port.HTTP)
 	if err != nil {

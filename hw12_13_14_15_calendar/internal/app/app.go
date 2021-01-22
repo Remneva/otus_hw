@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
-	memorystorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
 	"go.uber.org/zap"
 )
 
@@ -24,11 +22,11 @@ type Application interface {
 	Get(ctx context.Context, id int64) (storage.Event, error)
 }
 
-func New(logger *zap.Logger, r storage.BaseStorage, c configs.Config) *App { //nolint
-	if !c.Mode.MemMode {
-		return &App{repo: r, log: logger}
+func NewApp(logger *zap.Logger, r storage.EventsStorage) *App {
+	return &App{
+		repo: r,
+		log:  logger,
 	}
-	return &App{repo: memorystorage.NewMap(logger), log: logger}
 }
 
 func (a *App) Create(ctx context.Context, eve storage.Event) (int64, error) {

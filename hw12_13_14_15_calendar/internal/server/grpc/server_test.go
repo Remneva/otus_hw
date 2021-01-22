@@ -140,7 +140,7 @@ func (s *StoreSuite) SetupTest() {
 	var z zapcore.Level
 	var c configs.Config
 	logg, _ := logger.NewLogger(z, "/dev/null")
-	s.app = app.New(logg, s.mockDB, c)
+	s.app = app.NewApp(logg, s.mockDB, c)
 	s.srv = Server{app: s.app, log: logg}
 	s.start = time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
 	s.oneDayLater = s.start.AddDate(0, 0, 1)

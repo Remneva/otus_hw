@@ -77,68 +77,42 @@ func (s *Server) Stop(ctx context.Context) error {
 func (m *MyHandler) setEvent(resp http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		m.log.Error("BadRequest", zap.Error(err))
-		resp.WriteHeader(http.StatusBadRequest)
-		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
+		m.respond(err, resp)
 		return
 	}
 	rb := Event{}
 	if err = json.Unmarshal(body, &rb); err != nil {
-		m.log.Error("Unmarshal error", zap.Error(err))
-		resp.WriteHeader(http.StatusBadRequest)
-		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
+		m.respond(err, resp)
 		return
 	}
 	eve := parseToEventStorageStruct(rb)
-	var id int64
-	id, err = m.app.Create(m.ctx, eve)
+	id, err := m.app.Create(m.ctx, eve)
 	if err != nil {
-		m.log.Info("BadRequest", zap.String("error", err.Error()))
-		resp.WriteHeader(http.StatusBadRequest)
-		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
+		m.respond(err, resp)
 		return
 	}
-	resp.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(resp).Encode(id); err != nil {
-		m.log.Error("Encode error", zap.Error(err))
-	}
+	r := JSONID{}
+	r.ID = id
+	m.respond(id, resp)
 }
 
 func (m *MyHandler) getEvent(resp http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		m.log.Error("BadRequest", zap.Error(err))
-		resp.WriteHeader(http.StatusBadRequest)
-		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
+		m.respond(err, resp)
 		return
 	}
 
 	r := JSONID{}
 	id := r.ID
 	if err = json.Unmarshal(body, &id); err != nil {
-		m.log.Error("Unmarshal error", zap.Error(err))
-		resp.WriteHeader(http.StatusBadRequest)
-		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
+		m.respond(err, resp)
 		return
 	}
 	var result storage.Event
 	result, err = m.app.Get(m.ctx, id)
 	if err != nil {
-		m.log.Info("BadRequest", zap.String("error", err.Error()))
-		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
-		resp.WriteHeader(http.StatusBadRequest)
+		m.respond(err, resp)
 		return
 	}
 	response := Event{
@@ -151,36 +125,24 @@ func (m *MyHandler) getEvent(resp http.ResponseWriter, req *http.Request) {
 		EndDate:     result.EndDate,
 		EndTime:     result.EndTime,
 	}
-	resp.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(resp).Encode(&response); err != nil {
-		m.log.Error("Encode error", zap.Error(err))
-	}
+	m.respond(response, resp)
 }
 
 func (m *MyHandler) deleteEvent(resp http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		m.log.Error("BadRequest", zap.Error(err))
-		resp.WriteHeader(http.StatusBadRequest)
-		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
+		m.respond(err, resp)
 		return
 	}
 	r := JSONID{}
 	id := r.ID
 	if err = json.Unmarshal(body, &id); err != nil {
-		m.log.Error("Unmarshal error", zap.Error(err))
-		resp.WriteHeader(http.StatusBadRequest)
-		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
+		m.respond(err, resp)
 		return
 	}
 	err = m.app.Delete(m.ctx, id)
 	if err != nil {
-		m.log.Info("BadRequest", zap.String("error", err.Error()))
-		resp.WriteHeader(http.StatusBadRequest)
+		m.respond(err, resp)
 		return
 	}
 	resp.WriteHeader(http.StatusOK)
@@ -192,31 +154,22 @@ func (m *MyHandler) deleteEvent(resp http.ResponseWriter, req *http.Request) {
 func (m *MyHandler) updateEvent(resp http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		m.log.Info("BadRequest", zap.String("ReadAll", err.Error()))
-		resp.WriteHeader(http.StatusBadRequest)
+		m.respond(err, resp)
 		return
 	}
 	rb := Event{}
 	if err = json.Unmarshal(body, &rb); err != nil {
-		m.log.Error("Unmarshal error", zap.Error(err))
+		m.respond(err, resp)
 	}
 	m.log.Info("Update http method", zap.Int("req", int(rb.ID)))
 	if rb.ID == 0 {
-		m.log.Info("BadRequest", zap.Int("ID can't be zero or nil value", int(rb.ID)))
-		resp.WriteHeader(http.StatusBadRequest)
-		if err = json.NewEncoder(resp).Encode("ID can't be zero or nil value"); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
+		m.respond("ID can't be zero or nil value", resp)
 		return
 	}
 	eve := parseToEventStorageStruct(rb)
 	err = m.app.Update(m.ctx, eve)
 	if err != nil {
-		m.log.Info("BadRequest", zap.String("error", err.Error()))
-		resp.WriteHeader(http.StatusBadRequest)
-		if err = json.NewEncoder(resp).Encode(err.Error()); err != nil {
-			m.log.Error("Encode error", zap.Error(err))
-		}
+		m.respond(err, resp)
 		return
 	}
 	resp.WriteHeader(http.StatusOK)
@@ -233,6 +186,28 @@ func parseToEventStorageStruct(req Event) storage.Event {
 	eve.StartTime = req.StartTime
 	eve.EndTime = req.EndTime
 	return eve
+}
+
+func (m *MyHandler) respond(data interface{}, resp http.ResponseWriter) {
+	switch i := data.(type) {
+	case Event, JSONID:
+		resp.WriteHeader(200)
+		if err := json.NewEncoder(resp).Encode(&i); err != nil {
+			m.log.Error("Encode error", zap.Error(err))
+		}
+	case error:
+		m.writeResponse(i.Error(), 400, resp)
+	case string:
+		m.writeResponse(i, 400, resp)
+	}
+}
+
+func (m *MyHandler) writeResponse(message string, code int, resp http.ResponseWriter) {
+	m.log.Error("BadRequest", zap.String("error", message))
+	resp.WriteHeader(code)
+	if err := json.NewEncoder(resp).Encode(message); err != nil {
+		m.log.Error("Encode error", zap.Error(err))
+	}
 }
 
 type Event struct {

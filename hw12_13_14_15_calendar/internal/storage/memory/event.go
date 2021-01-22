@@ -27,10 +27,10 @@ type EventMap struct {
 }
 
 func (e *EventMap) GetEvents(ctx context.Context) ([]storage.Event, error) {
-	defer e.mu.Unlock()
 	count := len(e.ev)
 	slice := make([]storage.Event, count)
 	e.mu.Lock()
+	defer e.mu.Unlock()
 	for _, event := range e.ev {
 		slice = append(slice, event)
 	}
@@ -38,9 +38,9 @@ func (e *EventMap) GetEvents(ctx context.Context) ([]storage.Event, error) {
 }
 
 func (e *EventMap) GetEvent(ctx context.Context, id int64) (storage.Event, error) {
-	defer e.mu.Unlock()
 	var ev storage.Event
 	e.mu.Lock()
+	defer e.mu.Unlock()
 	if _, ok := e.ev[int(id)]; ok {
 		ev = e.ev[int(id)]
 		e.log.Info("getting event from memory", zap.Int64("id", id))
@@ -51,8 +51,8 @@ func (e *EventMap) GetEvent(ctx context.Context, id int64) (storage.Event, error
 }
 
 func (e *EventMap) AddEvent(ctx context.Context, ev storage.Event) (int64, error) {
-	defer e.mu.Unlock()
 	e.mu.Lock()
+	defer e.mu.Unlock()
 	id = len(e.ev)
 	id++
 	ev.ID = int64(id)
@@ -62,8 +62,8 @@ func (e *EventMap) AddEvent(ctx context.Context, ev storage.Event) (int64, error
 }
 
 func (e *EventMap) DeleteEvent(ctx context.Context, id int64) error {
-	defer e.mu.Unlock()
 	e.mu.Lock()
+	defer e.mu.Unlock()
 	if _, ok := e.ev[int(id)]; ok {
 		delete(e.ev, int(id))
 		e.log.Info("delete event from memory", zap.Int64("id", id))
@@ -74,8 +74,8 @@ func (e *EventMap) DeleteEvent(ctx context.Context, id int64) error {
 }
 
 func (e *EventMap) UpdateEvent(ctx context.Context, ev storage.Event) error {
-	defer e.mu.Unlock()
 	e.mu.Lock()
+	defer e.mu.Unlock()
 	if _, ok := e.ev[int(ev.ID)]; ok {
 		ev = e.ev[id]
 		return nil

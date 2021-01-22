@@ -186,7 +186,7 @@ func (s *StoreSuite) SetupTest() {
 	var c configs.Config
 	logg, _ := logger.NewLogger(z, "/dev/null")
 	s.log = logg
-	s.app = app.New(logg, s.mockDB, c)
+	s.app = app.NewApp(logg, s.mockDB, c)
 	s.start = time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
 	s.oneDayLater = s.start.AddDate(0, 0, 1)
 }

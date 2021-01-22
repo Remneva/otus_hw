@@ -11,14 +11,21 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func NewLogger(level zapcore.Level, outputfile string) (*zap.Logger, error) {
+func NewLogger(level zapcore.Level, env string, outputfile string) (*zap.Logger, error) {
 	err := mkFile(outputfile)
 	if err != nil {
 		return nil, errors.New("Error file creating")
 	}
-	cfg := zap.NewProductionConfig()
+	var cfg zap.Config
+	switch {
+	case env == "prod":
+		cfg = zap.NewProductionConfig()
+		cfg.EncoderConfig.EncodeLevel = customLevelEncoder
+	default:
+		cfg = zap.NewDevelopmentConfig()
+		cfg.EncoderConfig.EncodeLevel = zapcore.LowercaseColorLevelEncoder
+	}
 	cfg.EncoderConfig.EncodeTime = syslogTimeEncoder
-	cfg.EncoderConfig.EncodeLevel = customLevelEncoder
 	cfg.OutputPaths = []string{outputfile, "stdout"}
 	cfg.ErrorOutputPaths = []string{"stderr"}
 	cfg.Level = zap.NewAtomicLevelAt(level)
@@ -27,6 +34,7 @@ func NewLogger(level zapcore.Level, outputfile string) (*zap.Logger, error) {
 	if err != nil {
 		return nil, fmt.Errorf("logger build failed: %w", err)
 	}
+
 	return logger, nil
 }
 
@@ -35,7 +43,7 @@ func syslogTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 }
 
 func customLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-	enc.AppendString("[" + level.String() + "]")
+	enc.AppendString("[" + level.CapitalString() + "]")
 }
 
 func mkFile(path string) error {

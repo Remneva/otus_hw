@@ -21,6 +21,10 @@ type Storage struct {
 	storage.EventsStorage
 }
 
+func (s *Storage) Events() storage.EventsStorage {
+	return s
+}
+
 func NewStorage(l *zap.Logger) *Storage {
 	s := &Storage{
 		l: l}
@@ -37,6 +41,7 @@ func (s *Storage) Connect(ctx context.Context, dsn string) (err error) {
 		s.l.Error("Error", zap.String("Ping", err.Error()))
 		return fmt.Errorf("ping error: %w", err)
 	}
+	s.l.Info("success connection psql")
 	return nil
 }
 
@@ -50,7 +55,7 @@ func (s *Storage) DeleteEvent(ctx context.Context, id int64) error {
 		return fmt.Errorf("SELECT query error %w", err)
 	}
 	if !exist {
-		return fmt.Errorf("event does not exist %w", err)
+		return fmt.Errorf("event does not exist")
 	}
 	_, err = s.db.ExecContext(ctx, `
 		DELETE from events where ID = $1
@@ -69,7 +74,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, ev storage.Event) error {
 		return fmt.Errorf("SELECT query error %w", err)
 	}
 	if !exist {
-		return fmt.Errorf("event does not exist %w", err)
+		return fmt.Errorf("event does not exist")
 	}
 	query := "Update events SET owner = $1, title = $2, description = $3, start_date = $4, start_time = $5, end_date = $6, end_time = $7 WHERE id = $8 "
 	result, err := s.db.ExecContext(ctx, query, ev.Owner, ev.Title, ev.Description, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime, ev.ID)
@@ -98,7 +103,7 @@ func (s *Storage) GetEvent(ctx context.Context, id int64) (storage.Event, error)
 		return ev, fmt.Errorf("SELECT query error %w", err)
 	}
 	if !exist {
-		return ev, fmt.Errorf("event does not exist %w", err)
+		return ev, fmt.Errorf("event does not exist")
 	}
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, owner, title, description, start_date, start_time, end_date, end_time FROM events where id = $1`, id)

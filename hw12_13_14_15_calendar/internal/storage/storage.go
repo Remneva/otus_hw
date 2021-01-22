@@ -11,7 +11,7 @@ import (
 type BaseStorage interface {
 	Connect(ctx context.Context, dsn string) error
 	Close() error
-	EventsStorage
+	Events() EventsStorage
 }
 
 type EventsStorage interface {
