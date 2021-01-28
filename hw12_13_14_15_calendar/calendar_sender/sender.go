@@ -74,8 +74,7 @@ func signalChan(q rabbit.Rabbit) {
 	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	fmt.Printf("Got %v...\n", <-signals)
 
-	err := q.Shutdown()
-	if err != nil {
+	if err := q.Shutdown(); err != nil {
 		q.Log.Error("consumer cancel failed", zap.Error(err))
 	}
 }

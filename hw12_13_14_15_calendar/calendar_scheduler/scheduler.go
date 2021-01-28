@@ -78,8 +78,7 @@ func signalChan(q rabbit.Rabbit) {
 	fmt.Printf("Got %v...\n", <-signals)
 
 	close(q.Done)
-	err := q.Shutdown()
-	if err != nil {
+	if err := q.Shutdown(); err != nil {
 		q.Log.Error("consumer cancel failed", zap.Error(err))
 	}
 }

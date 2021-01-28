@@ -32,7 +32,7 @@ func (e *EventMap) GetEvents(ctx context.Context) ([]storage.Event, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	for _, event := range e.ev {
-		slice = append(slice, event)
+		slice = append(slice, event) //nolint:makezero
 	}
 	return slice, nil
 }
