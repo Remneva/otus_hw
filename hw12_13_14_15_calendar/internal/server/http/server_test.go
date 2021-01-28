@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/logger"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	_ "github.com/stretchr/testify/require"

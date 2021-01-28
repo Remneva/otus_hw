@@ -1,4 +1,4 @@
-BIN := "./bin/calendar"
+BIN := "./bin"
 DOCKER_IMG="calendar:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
@@ -6,6 +6,8 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./calendar_scheduler
+	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./calendar_sender
 
 run: build
 	$(BIN) -config ./configs/config.toml
@@ -26,7 +28,7 @@ test:
 	go test -race ./internal/... ./pkg/...
 
 install-lint-deps:
-	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.30.0
+	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.36.0
 
 lint: install-lint-deps
 	golangci-lint run ./...
