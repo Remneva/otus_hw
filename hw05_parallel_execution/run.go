@@ -2,7 +2,6 @@ package hw05_parallel_execution //nolint:golint,stylecheck
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 	"sync/atomic"
 )
@@ -24,7 +23,7 @@ func Run(tasks []Task, n int, m int) error {
 			for task := range workCh {
 				err := task()
 				if err != nil {
-					fmt.Println(atomic.AddInt32(&z, 1))
+					atomic.AddInt32(&z, 1)
 				}
 			}
 		}()
