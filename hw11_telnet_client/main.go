@@ -38,36 +38,35 @@ func main() {
 		log.Fatalf("Cannot accept: %v", err)
 	}
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(1)
 	signals := make(chan os.Signal, 1)
-
 	go func() {
-		defer client.Close()
+		defer wg.Done()
 		err := client.Receive()
 		if err != nil {
-			log.Fatalf("Cannot start receiving goroutine: %v", err.Error())
+			log.Printf("Cannot start receiving goroutine: %v", err.Error())
 		}
 	}()
 
 	go func() {
-		defer client.Close()
+		defer wg.Done()
 		err := client.Send()
 		if err != nil {
-			log.Fatalf("Cannot start sending goroutine: %v", err.Error())
+			log.Printf("Cannot start sending goroutine: %v", err.Error())
 		}
+
 	}()
 
-	go func() {
-		signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-		<-signals
-		signal.Stop(signals)
+	<-signals
+	signal.Stop(signals)
 
-		err := client.Close()
-		if err != nil {
-			log.Fatalf("Close client error: %v", err.Error())
-		}
-		os.Exit(0)
-	}()
+	err = client.Close()
+	if err != nil {
+		log.Printf("Close client error: %v", err.Error())
+	}
+	os.Exit(0)
+
 	wg.Wait()
 }
