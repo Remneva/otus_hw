@@ -32,7 +32,7 @@ type users []User
 
 func getUsers(r io.Reader, domain string) (result users, err error) {
 	scanner := bufio.NewScanner(r)
-	lines := make([]string, 0)
+	var lines []string
 	for scanner.Scan() {
 		str := scanner.Text()
 		if strings.Contains(str, domain) {
