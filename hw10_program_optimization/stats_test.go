@@ -58,4 +58,31 @@ func TestGetDomainStat(t *testing.T) {
 		result := countDomains(testdata, "com")
 		require.Equal(t, DomainStat{}, result)
 	})
+
+	t.Run("there are no suitable data, email contains domain", func(t *testing.T) {
+		u := User{
+			Email: "com@TROLOLO.su",
+		}
+		testdata := []User{u}
+		result := countDomains(testdata, "com")
+		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("there are no suitable data, email contains domain, no dot", func(t *testing.T) {
+		u := User{
+			Email: "qwerty@com",
+		}
+		testdata := []User{u}
+		result := countDomains(testdata, "com")
+		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("there are no suitable data, email contains domain, no @", func(t *testing.T) {
+		u := User{
+			Email: "qwertygmail.com",
+		}
+		testdata := []User{u}
+		result := countDomains(testdata, "com")
+		require.Equal(t, DomainStat{}, result)
+	})
 }
