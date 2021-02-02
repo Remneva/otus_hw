@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"time"
 )
@@ -27,20 +26,16 @@ func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, ou
 }
 
 func (t *TelnetClient) Receive() error {
-	_, err := io.Copy(t.out, t.conn)
-	if err != nil {
+	if _, err := io.Copy(t.out, t.conn); err != nil {
 		return fmt.Errorf("write received msg error: %w", err)
 	}
-	log.Printf("Finished receive routine")
 	return nil
 }
 
 func (t *TelnetClient) Send() error {
-	_, err := io.Copy(t.conn, t.in)
-	if err != nil {
+	if _, err := io.Copy(t.conn, t.in); err != nil {
 		return fmt.Errorf("send msg error: %w", err)
 	}
-	log.Printf("Finished send routine")
 	return nil
 }
 
@@ -54,8 +49,7 @@ func (t *TelnetClient) Connect() error {
 }
 
 func (t *TelnetClient) Close() error {
-	err := t.conn.Close()
-	if err != nil {
+	if err := t.conn.Close(); err != nil {
 		return fmt.Errorf("close connection error: %w", err)
 	}
 	return nil
