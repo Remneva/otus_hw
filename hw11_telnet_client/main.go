@@ -30,14 +30,18 @@ func main() {
 		host = os.Args[2]
 		port = os.Args[3]
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+
 	address := net.JoinHostPort(host, port)
 	client := NewTelnetClient(address, timeout, os.Stdin, os.Stdout)
-	ctx, cancel := context.WithCancel(context.Background())
+
 	err := client.Connect()
 	if err != nil {
 		log.Fatalf("Cannot accept: %v", err)
 	}
+
 	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		err := client.Receive()
@@ -54,8 +58,6 @@ func main() {
 		}
 		cancel()
 	}()
-
-	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	select {
 	case <-signals:
