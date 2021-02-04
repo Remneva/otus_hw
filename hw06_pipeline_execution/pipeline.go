@@ -8,7 +8,32 @@ type (
 
 type Stage func(in In) (out Out)
 
-func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	// Place your code here
-	return nil
+func insertDone(in In, done Bi) Out {
+	out := make(chan interface{})
+	go func() {
+		defer close(out)
+		for {
+			select {
+			case <-done:
+				return
+			case vv, ok := <-in:
+				if !ok {
+					return
+				}
+				select {
+				case <-done:
+					return
+				case out <- vv:
+				}
+			}
+		}
+	}()
+	return out
+}
+func ExecutePipeline(in In, done Bi, stages ...Stage) Out {
+	out := stages[0](insertDone(in, done))
+	for _, s := range stages[1:] {
+		out = s(insertDone(out, done))
+	}
+	return out
 }
