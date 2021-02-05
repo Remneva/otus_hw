@@ -18,17 +18,19 @@ var (
 )
 
 func init() {
-	flag.Duration("timeout", 10, "connection timeout")
+	flag.DurationVar(&timeout, "timeout", 10, "specify connection timeout")
+	flag.StringVar(&host, "host", "localhost", "specify the hosting server")
+	flag.StringVar(&port, "port", "3302", "specify server tcp port")
 }
 
 func main() {
 	flag.Parse()
-	if len(os.Args) == 3 {
-		host = os.Args[1]
-		port = os.Args[2]
-	} else {
+
+	if len(os.Args) == 4 {
 		host = os.Args[2]
 		port = os.Args[3]
+	} else {
+		flag.PrintDefaults()
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -39,7 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot accept: %v", err)
 	}
-
+	defer client.Close()
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
@@ -62,13 +64,6 @@ func main() {
 	select {
 	case <-signals:
 		signal.Stop(signals)
-		break
 	case <-ctx.Done():
-		break
 	}
-	err = client.Close()
-	if err != nil {
-		log.Printf("Close client error: %v", err.Error())
-	}
-	os.Exit(0)
 }
