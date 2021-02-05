@@ -37,8 +37,7 @@ func main() {
 	address := net.JoinHostPort(host, port)
 	client := NewTelnetClient(address, timeout, os.Stdin, os.Stdout)
 
-	err := client.Connect()
-	if err != nil {
+	if err := client.Connect(); err != nil {
 		log.Fatalf("Cannot accept: %v", err)
 	}
 	defer client.Close()
