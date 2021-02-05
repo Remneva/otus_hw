@@ -3,6 +3,7 @@ package hw09_struct_validator //nolint:golint,stylecheck
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -37,20 +38,68 @@ type (
 )
 
 func TestValidate(t *testing.T) {
+
 	tests := []struct {
 		in          interface{}
-		expectedErr error
+		expectedErr ValidationErrors
 	}{
 		{
-			// Place your code here
+			in: User{
+				ID:     "1",
+				Name:   "Xipe-Totec",
+				Age:    5438,
+				Email:  "hello@world",
+				Role:   "admin",
+				Phones: []string{"111222333"},
+				meta:   json.RawMessage{},
+			},
+			expectedErr: ValidationErrors{
+				ValidationError{
+					Field: "Name",
+					Err:   ErrInvalidString,
+				},
+			},
 		},
-		// ...
-		// Place your code here
+		//{
+		//	in: App{
+		//		Version: "ololo",
+		//	},
+		//	expectedErr: ValidationErrors{
+		//		ValidationError{
+		//			Field: "Name",
+		//			Err:   ErrInvalidString,
+		//		},
+		//	},
+		//}, {
+		//	in: Token{
+		//		Header:    nil,
+		//		Payload:   nil,
+		//		Signature: nil,
+		//	},
+		//	expectedErr: ValidationErrors{
+		//		ValidationError{
+		//			Field: "Header",
+		//			Err:   ErrInvalidString,
+		//		},
+		//	},
+		//}, {
+		//	in: Response{
+		//		Code: 0,
+		//		Body: "",
+		//	},
+		//	expectedErr: ValidationErrors{
+		//		ValidationError{
+		//			Field: "Body",
+		//			Err:   ErrInvalidString,
+		//		},
+		//	},
+		//},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			// Place your code here
+			err := Validate(tt.in)
+			assert.Equal(t, tt.expectedErr, err)
 		})
 	}
 }
