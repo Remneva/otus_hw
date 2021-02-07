@@ -25,12 +25,11 @@ func init() {
 
 func main() {
 	flag.Parse()
-
-	if len(os.Args) == 4 {
+	if flag.NArg() == 2 {
 		host = os.Args[2]
 		port = os.Args[3]
 	} else {
-		flag.PrintDefaults()
+		flag.Usage()
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 
