@@ -89,8 +89,6 @@ func typeSwitch(fieldName string, val interface{}, tags []string, er ValidationE
 		for _, v := range h {
 			er, err = validateIntByTag(fieldName, v, tags, er)
 		}
-	default:
-		fmt.Println("Unhandled type", val)
 	}
 	return er, err
 }
