@@ -46,8 +46,11 @@ lint-fix:
 	gofmt -w ./..
 	gci -w ./..
 
-up:
+up-build:
 	docker-compose up -d --build
+
+up:
+	docker-compose up
 
 ps:
 	docker-compose ps -a

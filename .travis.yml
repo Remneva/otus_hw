@@ -85,6 +85,7 @@ jobs:
       name: "Makefile"
       install: go mod download
       script:
+        - make up-build
         - make up
         - make ps
       if: |
