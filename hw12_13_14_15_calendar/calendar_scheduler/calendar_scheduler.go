@@ -11,9 +11,9 @@ import (
 	"syscall"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/logger"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/rabbit"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/logger"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/rabbit"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage/sql"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 )

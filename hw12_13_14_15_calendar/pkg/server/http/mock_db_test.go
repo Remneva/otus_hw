@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	storage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+	storage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	gomock "github.com/golang/mock/gomock"
 )
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 
 	// Postgres driver.
 	_ "github.com/jackc/pgx/v4/stdlib"

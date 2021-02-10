@@ -5,9 +5,9 @@ GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
 build:
-	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
-	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./calendar_scheduler
-	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./calendar_sender
+	go build -mod=mod -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -mod=mod -v -o $(BIN) -ldflags "$(LDFLAGS)" ./calendar_scheduler
+	go build -mod=mod -v -o $(BIN) -ldflags "$(LDFLAGS)" ./calendar_sender
 
 run: build
 	$(BIN) -config ./configs/config.toml
@@ -16,7 +16,7 @@ build-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
 		-t $(DOCKER_IMG) \
-		-f build/Dockerfile .
+		-f calendar_scheduler/Dockerfile .
 
 run-img: build-img
 	docker run $(DOCKER_IMG)
@@ -45,3 +45,11 @@ lint:
 lint-fix:
 	gofmt -w ./..
 	gci -w ./..
+
+up:
+	sudo docker-compose up -d --build
+
+down:
+	docker-compose down
+
+integration-tests:

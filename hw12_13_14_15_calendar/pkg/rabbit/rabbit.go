@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
-	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 )

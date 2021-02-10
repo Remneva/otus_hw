@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"go.uber.org/zap"
 )
 

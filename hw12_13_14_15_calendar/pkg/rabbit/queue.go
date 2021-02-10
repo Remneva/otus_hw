@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
-	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 )
@@ -31,14 +31,23 @@ func (r *Rabbit) Declare() error {
 		r.C.AMQP.ExchangeType, // type
 		true,                  // durable
 		false,                 // auto-deleted
-		false,                 // internal
+		false,                 // pkg
 		false,                 // noWait
 		nil,
 	); err != nil {
 		return fmt.Errorf("exchange Declare error: %w", err)
 	}
 	r.Log.Info("exchange declared")
-
+	if _, err := r.Channel.QueueDeclare(
+		r.C.AMQP.Queue, // name of the queue
+		true,           // durable
+		false,          // delete when unused
+		false,          // exclusive
+		false,          // noWait
+		nil,            // arguments
+	); err != nil {
+		return fmt.Errorf("queue Declare error: %w", err)
+	}
 	// Число сообщений, которые можно подтвердить за раз.
 	err := r.Channel.Qos(50, 0, false)
 	if err != nil {
@@ -68,9 +77,11 @@ func (r *Rabbit) Publish(ev store.Event) error {
 
 	if err := r.Channel.Publish(
 		r.C.AMQP.ExchangeName, // publish to an exchange
-		r.C.AMQP.RoutingKey,   // routing to 0 or more queues
-		false,                 // mandatory
-		false,                 // immediate
+		r.C.AMQP.RoutingKey,   // routing to 0 or more
+
+		// s
+		false, // mandatory
+		false, // immediate
 		amqp.Publishing{
 			Body: body,
 		},

@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
-	srv "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/app"
+	srv "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"go.uber.org/zap"
 )
 

@@ -3,9 +3,9 @@ package main
 import (
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/rabbit"
-	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/rabbit"
+	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage/sql"
 	"github.com/go-co-op/gocron"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"

@@ -2,7 +2,7 @@
 level = "INFO"
 path = "/tmp/tmpdir/calendar.log"
 [amqp]
-uri = "amqp://guest:guest@localhost:5672/"
+uri = "amqp://guest:guest@rabbit:5672/"
 exchangeName = "SecondEx"
 exchangeType = "direct"
 routingKey = "test-key"
