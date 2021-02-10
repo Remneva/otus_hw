@@ -47,9 +47,13 @@ lint-fix:
 	gci -w ./..
 
 up:
-	sudo docker-compose up -d --build
+	docker-compose up -d --build
+
+ps:
+	docker-compose ps -a
 
 down:
 	docker-compose down
 
 integration-tests:
+	go test -tags=integration ./integration-test/...

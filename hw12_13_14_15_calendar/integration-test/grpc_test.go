@@ -24,7 +24,7 @@ func TestServerGRPC(t *testing.T) {
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
 	}
-	conn, err := grpc.Dial("localhost:50051", opts...)
+	conn, err := grpc.Dial("localhost:8887", opts...)
 
 	if err != nil {
 		fmt.Println(err)

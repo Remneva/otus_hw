@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-var dsn = "host=localhost port=5432 user=test password=test dbname=exampledb sslmode=disable"
+var dsn = "host=postgres port=5432 user=test password=test dbname=exampledb sslmode=disable"
 
 func TestStorage(t *testing.T) {
 

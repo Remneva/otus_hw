@@ -86,6 +86,7 @@ jobs:
       install: go mod download
       script:
         - make up
+        - make ps
       if: |
         (type = push AND branch == hw12_13_14_15_calendar) OR \
         (type = pull_request AND head_branch == hw12_13_14_15_calendar)
