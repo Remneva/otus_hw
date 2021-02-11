@@ -87,8 +87,8 @@ jobs:
       before_script:
         - make up-build
       env:
-        - TEST = integration-test/up.sh
-        - TEST = integration-test/testrunner.sh
+        - TEST = up.sh
+        - TEST = testrunner.sh
       script:
         - "./$TEST"
       if: |
