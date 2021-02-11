@@ -83,7 +83,7 @@ jobs:
 
     - stage: "Integration-Tests"
       name: "Makefile"
-      install: docker-compose up -d --build
+      install: docker-compose --build
       env:
         - TEST=up.sh
         - TEST=testrunner.sh
