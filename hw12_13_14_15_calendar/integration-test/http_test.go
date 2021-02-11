@@ -27,7 +27,7 @@ func TestServerHTTPset(t *testing.T) {
 	}
 
 	jsonBody, _ := json.Marshal(&request)
-	req, _ := http.NewRequest("POST", "http://localhost:8887/set",
+	req, _ := http.NewRequest("POST", "http://calendar:8887/set",
 		bytes.NewBuffer(jsonBody))
 	resp, _ := http.DefaultClient.Do(req)
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -38,7 +38,7 @@ func TestServerHTTPset(t *testing.T) {
 	request = h.Event{}
 	request.ID = id
 	jsonBody, _ = json.Marshal(&request)
-	req, _ = http.NewRequest("POST", "http://localhost:8887/update",
+	req, _ = http.NewRequest("POST", "http://calendar:8887/update",
 		bytes.NewBuffer(jsonBody))
 	resp, _ = http.DefaultClient.Do(req)
 	body, _ = ioutil.ReadAll(resp.Body)
