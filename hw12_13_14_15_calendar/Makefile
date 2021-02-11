@@ -58,5 +58,7 @@ ps:
 down:
 	docker-compose down
 
-integration-tests:
+integration-test:
+	docker-compose up -d --build
 	go test -tags=integration ./integration-test/...
+	docker-compose down
