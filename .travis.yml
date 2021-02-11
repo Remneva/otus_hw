@@ -84,8 +84,6 @@ jobs:
     - stage: "Integration-Tests"
       name: "Makefile"
       install: echo "skip"
-      before_script:
-        - make up-build
       env:
         - TEST=up.sh
         - TEST=testrunner.sh
