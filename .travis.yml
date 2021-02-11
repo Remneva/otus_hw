@@ -83,7 +83,7 @@ jobs:
 
     - stage: "Integration-Tests"
       name: "Makefile"
-      install: go mod download
+      install: echo "skip"
       before_script:
         - make up-build
       env:
