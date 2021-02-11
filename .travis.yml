@@ -87,8 +87,8 @@ jobs:
       before_script:
         - make up-build
       env:
-        - TEST = "up.sh"
-        - TEST = "testrunner.sh"
+        - TEST=up.sh
+        - TEST=testrunner.sh
       script: ./${TEST}
       if: |
         (type = push AND branch == hw12_13_14_15_calendar) OR \
