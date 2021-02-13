@@ -2,11 +2,9 @@ name: Go
 
 on:
   push:
-    branches:
-      - hw*
+    branches: [ hw* ]
   pull_request:
-    branches: 
-      - master
+    branches: [ master ]
 
 env:
   GO111MODULE: "on"
