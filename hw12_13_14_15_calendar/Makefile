@@ -59,8 +59,7 @@ down:
 	docker-compose down
 
 integration-test:
-	docker-compose --build
-	docker-compose up
+	docker-compose up -d --build
 	docker-compose ps -a
 	go test ./integration-test/...
 	docker-compose down
