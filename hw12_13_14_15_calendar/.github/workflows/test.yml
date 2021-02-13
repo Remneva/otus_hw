@@ -1,4 +1,4 @@
-name: otus hw tests
+name: Go
 
 on:
   push:
