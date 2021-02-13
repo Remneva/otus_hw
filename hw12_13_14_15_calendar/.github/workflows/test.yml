@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - hw*
+  pull_request:
+    branches: 
+      - master
 
 env:
   GO111MODULE: "on"
