@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
 	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
@@ -141,7 +142,7 @@ func (r *Rabbit) Consume() (<-chan amqp.Delivery, error) {
 func (r *Rabbit) Handle(deliveries <-chan amqp.Delivery, done chan error) {
 	for d := range deliveries {
 		r.Log.Info("got msg:", zap.ByteString("body:", d.Body),
-			zap.Int("byte:", len(d.Body)), zap.String("tag:", string(d.DeliveryTag)))
+			zap.Int("byte:", len(d.Body)), zap.String("tag:", strconv.FormatUint(d.DeliveryTag, 10)))
 		err := d.Ack(false)
 		if err != nil {
 			r.Log.Error("queue Declare error", zap.Error(err))
