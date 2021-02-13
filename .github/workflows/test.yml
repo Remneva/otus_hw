@@ -1,5 +1,4 @@
-
-name: otus hw tests
+name: otushw
 
 on:
   push:
@@ -83,3 +82,5 @@ jobs:
           make build
         if: env.BRANCH == 'hw12_13_14_15_calendar'
         working-directory: ${{env.BRANCH}}
+
+
