@@ -20,7 +20,7 @@ func TestServerGRPC(t *testing.T) {
 	starttime, err := ptypes.TimestampProto(start)
 	oneDayLater := start.AddDate(0, 0, 1)
 	endtime, err := ptypes.TimestampProto(oneDayLater)
-	conn, err := grpc.Dial("calendar:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial(":50051", grpc.WithInsecure())
 
 	if err != nil {
 		fmt.Println(err)
