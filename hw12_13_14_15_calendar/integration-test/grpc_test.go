@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"testing"
 	"time"
 )
@@ -79,16 +78,13 @@ func TestServerGRPC(t *testing.T) {
 		assert.Equal(t, "2020-03-02T00:00:00Z", respEvent.Enddate)
 
 		respEmpty, err := client.DeleteEvent(ctx, id)
-		if err != nil {
-			fmt.Printf("fail")
-		}
 		require.NoError(t, err)
-		assert.Equal(t, emptypb.Empty{}, respEmpty)
+		assert.Equal(t, "", respEmpty.String())
 
 		request.Id = 0
 		respId, err = client.UpdateEvent(context.Background(), request)
 		e, ok := status.FromError(err)
-		require.False(t, ok)
+		require.True(t, ok)
 		fmt.Println(e.Code().String())
 		assert.Equal(t, codes.InvalidArgument, e.Code())
 
