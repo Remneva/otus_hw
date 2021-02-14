@@ -14,8 +14,6 @@ import (
 func TestServerHTTPset(t *testing.T) {
 
 	t.Run("Create, update, get, delete event", func(t *testing.T) {
-		//start := time.Date(2009, 1, 1, 0, 0, 0, 0, time.UTC)
-		//oneDayLater := start.AddDate(0, 0, 1)
 		request := Event{
 			ID:          1,
 			Owner:       218,
@@ -81,8 +79,8 @@ func TestServerHTTPset(t *testing.T) {
 		assert.EqualValues(t, 218, rb.Owner)
 		assert.EqualValues(t, "Title", rb.Title)
 		assert.EqualValues(t, "qwerty", rb.Description)
-		assert.EqualValues(t, "2020-03-01", rb.StartDate)
-		assert.EqualValues(t, "2020-03-02", rb.EndDate)
+		assert.EqualValues(t, "2020-03-01T00:00:00Z", rb.StartDate)
+		assert.EqualValues(t, "2020-03-02T00:00:00Z", rb.EndDate)
 
 		req, err = http.NewRequest("POST", "http://127.0.0.1:8082/delete",
 			bytes.NewBuffer(jsonBody))
@@ -92,25 +90,6 @@ func TestServerHTTPset(t *testing.T) {
 		body, err = ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)
 		assert.Equal(t, resp.StatusCode, 200)
-
-		request = Event{
-			ID:          2,
-			Owner:       2188,
-			Title:       "Title",
-			Description: "qwerty",
-			StartDate:   "2020-03-01",
-			StartTime:   "2018-08-28T12:30:00+05:30",
-			EndDate:     "2020-03-02",
-			EndTime:     "2018-08-28T12:30:00+05:30",
-		}
-
-		jsonBody, _ = json.Marshal(&request)
-		req, _ = http.NewRequest("POST", "http://calendar:8887/set",
-			bytes.NewBuffer(jsonBody))
-		resp, _ = http.DefaultClient.Do(req)
-		body, _ = ioutil.ReadAll(resp.Body)
-		assert.Equal(t, resp.StatusCode, 200)
-		require.NotNil(t, body)
 	})
 
 }
