@@ -106,6 +106,6 @@ jobs:
 
       - name: Makefile
         run: |
-          make integration-test
+          make api-test
         if: env.BRANCH == 'hw12_13_14_15_calendar'
         working-directory: ${{env.BRANCH}}
