@@ -40,8 +40,8 @@ func TestStorage(t *testing.T) {
 		err = storage.UpdateEvent(ctx, ev)
 		require.Errorf(t, err, "Database query failed")
 
-		err = storage.DeleteEvent(ctx, 1)
-		require.NoError(t, err)
+		err = storage.DeleteEvent(ctx, 1000)
+		require.Errorf(t, err, "event does not exist")
 	})
 
 }
