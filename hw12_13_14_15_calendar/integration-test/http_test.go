@@ -82,7 +82,7 @@ func TestServerHTTPset(t *testing.T) {
 		assert.EqualValues(t, "2020-03-01T00:00:00Z", rb.StartDate)
 		assert.EqualValues(t, "2020-03-02T00:00:00Z", rb.EndDate)
 
-		req, err = http.NewRequest("POST", "http://127.0.0.1:8082/delete",
+		req, err = http.NewRequest("POST", "http://calendar:8082/delete",
 			bytes.NewBuffer(jsonBody))
 		require.NoError(t, err)
 		resp, err = http.DefaultClient.Do(req)
