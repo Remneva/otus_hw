@@ -68,6 +68,7 @@ api-test:
 	set -e ;\
 	docker-compose -f docker-compose.test.yml up --build -d ;\
 	docker-compose ps -a ;\
+	nmcli dev show | grep 'IP4.DNS'
 	test_status_code=0;\
 	docker-compose -f docker-compose.test.yml run integration_tests go test || test_status_code=$$?;\
 	docker-compose -f docker-compose.test.yml down;\
