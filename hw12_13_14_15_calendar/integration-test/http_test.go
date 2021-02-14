@@ -44,7 +44,7 @@ func TestServerHTTPset(t *testing.T) {
 		request = Event{
 			ID:          1,
 			Owner:       218,
-			Title:       "Xipe-Totec",
+			Title:       "Title",
 			Description: "qwerty",
 			StartDate:   "2020-03-01",
 			StartTime:   "2020-08-28T12:30:00+08:30",
@@ -80,24 +80,27 @@ func TestServerHTTPset(t *testing.T) {
 		assert.EqualValues(t, jsonid.ID, rb.ID)
 		assert.EqualValues(t, 218, rb.Owner)
 		assert.EqualValues(t, "Title", rb.Title)
-		assert.EqualValues(t, "Description", rb.Description)
+		assert.EqualValues(t, "qwerty", rb.Description)
 		assert.EqualValues(t, "2020-03-01", rb.StartDate)
-		assert.EqualValues(t, "2020-03-01", rb.EndDate)
+		assert.EqualValues(t, "2020-03-02", rb.EndDate)
 
-		req, _ = http.NewRequest("POST", "http://127.0.0.1:8082/delete",
+		req, err = http.NewRequest("POST", "http://127.0.0.1:8082/delete",
 			bytes.NewBuffer(jsonBody))
-		resp, _ = http.DefaultClient.Do(req)
-		body, _ = ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
+		resp, err = http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		body, err = ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
 		assert.Equal(t, resp.StatusCode, 200)
 
 		request = Event{
 			ID:          2,
 			Owner:       2188,
-			Title:       "Xipe-Totec",
+			Title:       "Title",
 			Description: "qwerty",
-			StartDate:   "",
+			StartDate:   "2020-03-01",
 			StartTime:   "2018-08-28T12:30:00+05:30",
-			EndDate:     "",
+			EndDate:     "2020-03-02",
 			EndTime:     "2018-08-28T12:30:00+05:30",
 		}
 
