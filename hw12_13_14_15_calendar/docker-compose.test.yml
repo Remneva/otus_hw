@@ -7,6 +7,24 @@ networks:
     driver: bridge
 
 services:
+  integration_tests:
+    build:
+      context: .
+      dockerfile: integration-test/Dockerfile
+    restart: on-failure
+    expose:
+      - 50051
+      - 8082
+    links:
+      - calendar
+      - calendar_scheduler
+      - calendar_sender
+    environment:
+      TESTS_AMQP_DSN: "amqp://guest:guest@rabbit:5672/"
+    networks:
+      - rabbit
+      - postgres
+
   calendar:
     build:
       context: .
@@ -19,8 +37,10 @@ services:
     restart: on-failure
     ports:
       - "50051:50051"
+      - "8082:8082"
     expose:
       - 50051
+      - 8082
     environment:
       REG_SERVICE_DB_DSN: "postgres://test:test@postgres:5432/exampledb?sslmode=disable"
       REG_SERVICE_AMQP_DSN: "amqp://guest:guest@localhost:5672/"

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server/pb"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/stretchr/testify/require"
 	"github.com/tj/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -19,10 +20,7 @@ func TestServerGRPC(t *testing.T) {
 	starttime, err := ptypes.TimestampProto(start)
 	oneDayLater := start.AddDate(0, 0, 1)
 	endtime, err := ptypes.TimestampProto(oneDayLater)
-	opts := []grpc.DialOption{
-		grpc.WithInsecure(),
-	}
-	conn, err := grpc.Dial("calendar:8887", opts...)
+	conn, err := grpc.Dial("calendar:50051", grpc.WithInsecure())
 
 	if err != nil {
 		fmt.Println(err)
@@ -46,6 +44,9 @@ func TestServerGRPC(t *testing.T) {
 		if err != nil {
 			fmt.Printf("fail to dial: %v\n", err)
 		}
+		require.NoError(t, err)
+		assert.NotNil(t, respId)
+		fmt.Println("respId", respId.Id)
 		request.Id = respId.Id
 		respId, err = client.UpdateEvent(context.Background(), request)
 		if err != nil {

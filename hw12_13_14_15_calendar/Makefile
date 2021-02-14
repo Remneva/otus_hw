@@ -33,7 +33,7 @@ install-lint-deps:
 lint: install-lint-deps
 	golangci-lint run ./...
 
-.PHONY: build run build-img run-img version test lint integration-test
+.PHONY: build run build-img run-img version test lint integration-test api-test
 
 generate:
 	mkdir -p internal/server/pb
@@ -63,3 +63,15 @@ integration-test:
 	docker-compose ps -a
 	go test ./integration-test/...
 	docker-compose down
+
+api-test:
+	set -e ;\
+	docker-compose -f docker-compose.test.yml up --build -d ;\
+	docker-compose ps -a ;\
+	test_status_code=0;\
+	docker-compose -f docker-compose.test.yml run integration_tests go test || test_status_code=$$?;\
+	docker-compose -f docker-compose.test.yml down;\
+	exit $$test_status_code;\
+
+prune:
+	docker system prune -a
