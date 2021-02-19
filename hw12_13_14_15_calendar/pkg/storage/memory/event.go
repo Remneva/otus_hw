@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"go.uber.org/zap"
@@ -24,6 +25,14 @@ type EventMap struct {
 	ev  map[int]storage.Event
 	mu  sync.Mutex
 	log *zap.Logger
+}
+
+func (e *EventMap) GetEventsByPeriod(ctx context.Context, starttime time.Time, endtime time.Time) ([]storage.Event, error) {
+	panic("implement me")
+}
+
+func (e *EventMap) ChangeStateByID(ctx context.Context, id int64) error {
+	panic("implement me")
 }
 
 func (e *EventMap) GetEvents(ctx context.Context) ([]storage.Event, error) {

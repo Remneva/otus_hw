@@ -20,6 +20,8 @@ type EventsStorage interface {
 	AddEvent(ctx context.Context, ev Event) (int64, error)
 	DeleteEvent(ctx context.Context, ID int64) error
 	UpdateEvent(ctx context.Context, ev Event) error
+	ChangeStateByID(ctx context.Context, id int64) error
+	GetEventsByPeriod(ctx context.Context, starttime time.Time, endtime time.Time) ([]Event, error)
 }
 
 type Event struct {

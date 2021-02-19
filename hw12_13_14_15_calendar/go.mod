@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/apex/log v1.9.0
+	github.com/cucumber/godog v0.9.0
 	github.com/dchest/safefile v0.0.0-20151022103144-855e8d98f185
 	github.com/go-co-op/gocron v0.5.1
 	github.com/golang/mock v1.4.3

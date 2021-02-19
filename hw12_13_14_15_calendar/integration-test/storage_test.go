@@ -1,47 +1,89 @@
-package test
+package main
 
 import (
-	"context"
-	"flag"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/logger"
-	s "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage/sql"
-	"github.com/apex/log"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zapcore"
-	"testing"
+	store "/hw12_13_14_15_calendar/pkg/storage"
+	"fmt"
+	"time"
 )
 
-var dsn = "host=postgres port=5432 user=test password=test dbname=exampledb sslmode=disable"
+func (s *suiteTestIntegration) TestStorage1() {
 
-func TestStorage(t *testing.T) {
+	var ev store.Event
 
-	var z zapcore.Level
-	flag.Parse()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	id, err := s.s.AddEvent(s.ctx, ev)
+	s.Require().Errorf(err, "Database query failed")
+	s.Require().Equal(id, int64(0))
 
-	var ev s.Event
-	logg, err := logger.NewLogger(z, "dev", "/dev/null")
-	if err != nil {
-		log.Fatal("failed to create logger")
+	err = s.s.UpdateEvent(s.ctx, ev)
+	s.Require().Errorf(err, "Database query failed")
+
+	err = s.s.DeleteEvent(s.ctx, 1000)
+	s.Require().Errorf(err, "event does not exist")
+
+}
+
+func (s *suiteTestIntegration) TestStorage2() {
+
+	ev := store.Event{
+		Owner:       1,
+		Title:       "test",
+		Description: "test",
+		StartDate:   "2020-03-01",
+		StartTime:   time.Now().Add((15) * time.Minute),
+		EndDate:     "2020-03-02",
+		EndTime:     time.Now().Add((5) * time.Minute),
 	}
-	storage := sql.NewStorage(logg)
-	err = storage.Connect(ctx, dsn)
-	if err != nil {
-		log.Fatal("failed to connect db")
+
+	id, err := s.s.AddEvent(s.ctx, ev)
+	s.Require().NoError(err)
+
+	ev = store.Event{
+		ID:          id,
+		Owner:       2,
+		Title:       "test test",
+		Description: "test test",
+		StartDate:   "2020-03-01",
+		StartTime:   time.Now().Add((15) * time.Minute),
+		EndDate:     "2020-03-02",
+		EndTime:     time.Now().Add((5) * time.Minute),
 	}
 
-	t.Run("CRUD query", func(t *testing.T) {
-		id, err := storage.AddEvent(ctx, ev)
-		require.Errorf(t, err, "Database query failed")
-		require.Equal(t, id, int64(0))
+	err = s.s.UpdateEvent(s.ctx, ev)
+	s.Require().NoError(err)
 
-		err = storage.UpdateEvent(ctx, ev)
-		require.Errorf(t, err, "Database query failed")
+	event, err := s.s.GetEvent(s.ctx, id)
+	s.Require().NoError(err)
+	s.Require().Equal(int64(2), event.Owner)
+	s.Require().Equal("test test", event.Title)
 
-		err = storage.DeleteEvent(ctx, 1000)
-		require.Errorf(t, err, "event does not exist")
-	})
+	err = s.s.DeleteEvent(s.ctx, id)
+	s.Require().NoError(err)
 
+	_, err = s.s.GetEvent(s.ctx, id)
+	s.Require().Equal("event does not exist", err.Error())
+}
+
+func (s *suiteTestIntegration) TestStorage3() {
+	startTime := time.Now().Add((-1000) * time.Minute)
+	endTime := time.Now().Add((5) * time.Minute)
+
+	events, err := s.s.GetEventsByPeriod(s.ctx, startTime, endTime)
+	for _, event := range events {
+		fmt.Println(event)
+	}
+	result := len(events)
+
+	s.Require().Equal(5, result)
+	s.Require().NoError(err)
+}
+
+func (s *suiteTestIntegration) TestStorage4() {
+	startTime := time.Now().Add((168) * time.Hour)
+	endTime := time.Now().Add((336) * time.Hour)
+
+	events, err := s.s.GetEventsByPeriod(s.ctx, startTime, endTime)
+	result := len(events)
+
+	s.Require().Equal(0, result)
+	s.Require().NoError(err)
 }

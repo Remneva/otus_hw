@@ -7,8 +7,8 @@ CREATE TABLE events (
     start_date date not null,
     start_time timestamp not null default now(),
     end_date date not null,
-    end_time timestamp
-
+    end_time timestamp,
+    received integer
 
 );
 

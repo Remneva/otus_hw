@@ -54,9 +54,9 @@ services:
       - postgres
     restart: on-failure
     ports:
-      - "8088:8088"
+      - "8087:8087"
     expose:
-      - 8888
+      - 8087
     environment:
       NOTIFY_SERVICE_AMQP_DSN: "amqp://guest:guest@localhost:5672/"
     networks:
@@ -79,6 +79,7 @@ services:
       NOTIFY_SERVICE_AMQP_DSN: "amqp://guest:guest@localhost:5672/"
     networks:
       - rabbit
+      - postgres
 
   rabbit:
     image: rabbitmq:3.7.17-management

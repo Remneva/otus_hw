@@ -1,14 +1,14 @@
 package internalgrpc
 
 import (
+	"/hw12_13_14_15_calendar/pkg/app"
+	"/hw12_13_14_15_calendar/pkg/logger"
+	"/hw12_13_14_15_calendar/pkg/server/pb"
+	"/hw12_13_14_15_calendar/pkg/storage"
 	"context"
 	"testing"
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/app"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/logger"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server/pb"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/suite"

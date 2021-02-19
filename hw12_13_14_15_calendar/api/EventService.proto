@@ -21,7 +21,16 @@ message Id {
   int64 id = 1;
 }
 
+message Events {
+
+}
+
+message Dates{
+
+}
+
 service Calendar {
+
   rpc GetEvent (Id) returns (Event){
   }
 
@@ -34,4 +43,5 @@ service Calendar {
   rpc DeleteEvent (Id) returns (google.protobuf.Empty){
   }
 }
+
 

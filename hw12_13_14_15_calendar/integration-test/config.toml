@@ -1,6 +1,5 @@
-[logger]
-level = "INFO"
-path = "/tmp/tmpdir/calendar.log"
+[psql]
+dsn = "host=postgres port=5432 user=test password=test dbname=exampledb sslmode=disable"
 [amqp]
 uri = "amqp://guest:guest@rabbit:5672/"
 exchangeName = "SecondEx"
@@ -10,6 +9,4 @@ body = "foobar"
 reliable = true
 consumerTag = "simple-consumer"
 queue = "test-queue"
-timeout = 100
-[psql]
-dsn = "host=postgres port=5432 user=test password=test dbname=exampledb sslmode=disable"
+timeout = 30

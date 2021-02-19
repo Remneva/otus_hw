@@ -1,17 +1,18 @@
-package test
+package main
 
 import (
+	"/hw12_13_14_15_calendar/pkg/server/pb"
 	"context"
 	"fmt"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server/pb"
+	"testing"
+	"time"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"github.com/tj/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"testing"
-	"time"
 )
 
 func TestServerGRPC(t *testing.T) {
@@ -45,33 +46,17 @@ func TestServerGRPC(t *testing.T) {
 		}
 		require.NoError(t, err)
 		assert.NotNil(t, respId)
-		fmt.Println("respId", respId.Id)
+
 		request.Id = respId.Id
-		//req := &pb.Event{
-		//	Id:          respId.Id,
-		//	Title:       "Title",
-		//	Description: "result",
-		//	Startdate:   "2021-03-01",
-		//	Starttime:   starttime,
-		//	Enddate:     "2021-03-02",
-		//	Endtime:     endtime,
-		//}
-		//respId, err = client.UpdateEvent(ctx, req)
-		//if err != nil {
-		//	fmt.Printf("fail to dial: %v\n", err)
-		//}
-		//require.NoError(t, err)
 		id := &pb.Id{
 			Id: respId.Id,
 		}
-		fmt.Println("get req Id", respId.Id)
+
 		respEvent, err := client.GetEvent(ctx, id)
 		if err != nil {
 			fmt.Printf("fail to dial: %v\n", err)
 		}
 		require.NoError(t, err)
-
-		//		assert.Equal(t, int64(1), respEvent.Owner)
 		assert.Equal(t, "Title", respEvent.Title)
 		assert.Equal(t, "result", respEvent.Description)
 		assert.Equal(t, "2020-03-01T00:00:00Z", respEvent.Startdate)

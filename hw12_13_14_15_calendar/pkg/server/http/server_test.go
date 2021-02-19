@@ -1,6 +1,9 @@
 package internalhttp
 
 import (
+	"/hw12_13_14_15_calendar/pkg/app"
+	"/hw12_13_14_15_calendar/pkg/logger"
+	"/hw12_13_14_15_calendar/pkg/storage"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -9,9 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/app"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/logger"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	_ "github.com/stretchr/testify/require"

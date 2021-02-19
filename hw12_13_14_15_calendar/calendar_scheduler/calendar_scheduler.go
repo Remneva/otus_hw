@@ -38,7 +38,6 @@ func main() {
 	if err != nil {
 		log.Println("failed to create logger")
 	}
-
 	defer cancel()
 	storage := sql.NewStorage(logg)
 	if err := storage.Connect(ctx, config.PSQL.DSN); err != nil {

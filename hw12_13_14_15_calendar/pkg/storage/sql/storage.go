@@ -159,17 +159,17 @@ func (s *Storage) AddEvent(ctx context.Context, ev storage.Event) (int64, error)
 	if exist {
 		return 0, fmt.Errorf("event already exist at this time")
 	}
-	query := `INSERT INTO events (owner, title, description, start_date, start_time, end_date, end_time)
-VALUES($1, $2, $3, $4, $5, $6, $7)`
+	query := `INSERT INTO events (owner, title, description, start_date, start_time, end_date, end_time, received)
+VALUES($1, $2, $3, $4, $5, $6, $7, 0)`
 	_, err = s.db.ExecContext(ctx, query, ev.Owner, ev.Title, ev.Description, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime)
 	if err != nil {
-		return 0, fmt.Errorf("open connection error %w", err)
+		return 0, fmt.Errorf("query error %w", err)
 	}
 	var id int64
 	err = s.db.QueryRowContext(ctx, `
 		SELECT id FROM events ORDER BY id DESC LIMIT 1`).Scan(&id)
 	if err != nil {
-		return 0, fmt.Errorf("open connection error %w", err)
+		return 0, fmt.Errorf("query error %w", err)
 	}
 	s.l.Info("Event Created", zap.Int64("id", id))
 	return id, nil
@@ -193,4 +193,50 @@ func (s *Storage) eventExistValidation(owner int64, time time.Time) (bool, error
 		return exists, fmt.Errorf("query error %w", err)
 	}
 	return exists, nil
+}
+
+func (s *Storage) GetEventsByPeriod(ctx context.Context, starttime time.Time, endtime time.Time) ([]storage.Event, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id, owner, title, description, start_date, start_time, end_date, end_time FROM events WHERE (start_time > $1 AND end_time < $2 )`, starttime, endtime)
+	if err != nil {
+		return nil, fmt.Errorf("open connection error %w", err)
+	}
+	defer rows.Close()
+	var events []storage.Event
+	for rows.Next() {
+		var ev storage.Event
+		if err := rows.Scan(
+			&ev.ID,
+			&ev.Owner,
+			&ev.Title,
+			&ev.Description,
+			&ev.StartDate,
+			&ev.StartTime,
+			&ev.EndDate,
+			&ev.EndTime,
+		); err != nil {
+			s.l.Error("Get event error", zap.String("query", rows.Err().Error()))
+			return nil, fmt.Errorf("open connection error %w", err)
+		}
+		events = append(events, ev)
+	}
+	return events, nil
+}
+
+func (s *Storage) ChangeStateByID(ctx context.Context, id int64) error {
+	query := `UPDATE events SET received = 1 WHERE id = $1`
+	_, err := s.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("query error %w", err)
+	}
+	s.l.Info("status received update", zap.Int64("id", id))
+	return nil
+}
+
+func (s *Storage) GetStatusByID(ctx context.Context, id int64) (int64, error) {
+	var status int64
+	row := s.db.QueryRowContext(ctx, `SELECT received FROM events WHERE id = $1`, id)
+	if err := row.Scan(&status); err != nil {
+		return status, fmt.Errorf("query error %w", err)
+	}
+	return status, nil
 }

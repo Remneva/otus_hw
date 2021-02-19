@@ -15,12 +15,12 @@ services:
     expose:
       - 50051
       - 8082
+      - 5672
+      - 5432
     links:
       - calendar
       - calendar_scheduler
       - calendar_sender
-    environment:
-      TESTS_AMQP_DSN: "amqp://guest:guest@rabbit:5672/"
     networks:
       - rabbit
       - postgres
@@ -74,9 +74,9 @@ services:
       - postgres
     restart: on-failure
     ports:
-      - "8088:8088"
+      - "8087:8087"
     expose:
-      - 8088
+      - 8087
     environment:
       NOTIFY_SERVICE_AMQP_DSN: "amqp://guest:guest@localhost:5672/"
     networks:
@@ -99,6 +99,7 @@ services:
       NOTIFY_SERVICE_AMQP_DSN: "amqp://guest:guest@localhost:5672/"
     networks:
       - rabbit
+      - postgres
 
   rabbit:
     image: rabbitmq:3.7.17-management

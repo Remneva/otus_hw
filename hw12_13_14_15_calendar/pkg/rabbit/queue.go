@@ -13,6 +13,10 @@ import (
 	"go.uber.org/zap"
 )
 
+type Message struct {
+	Message string
+}
+
 func NewRabbit(ctx context.Context, channel *amqp.Channel, connection *amqp.Connection, logg *zap.Logger, config configs.Config, ev store.EventsStorage) *Rabbit {
 	r := &Rabbit{
 		Channel: channel,
@@ -140,14 +144,36 @@ func (r *Rabbit) Consume() (<-chan amqp.Delivery, error) {
 }
 
 func (r *Rabbit) Handle(deliveries <-chan amqp.Delivery, done chan error) {
+	var m Event
+
 	for d := range deliveries {
 		r.Log.Info("got msg:", zap.ByteString("body:", d.Body),
 			zap.Int("byte:", len(d.Body)), zap.String("tag:", strconv.FormatUint(d.DeliveryTag, 10)))
-		err := d.Ack(false)
+
+		err := json.Unmarshal(d.Body, &m)
 		if err != nil {
-			r.Log.Error("queue Declare error", zap.Error(err))
+			r.Log.Error("unmarshal error", zap.Error(err))
+		}
+		err = r.Repo.ChangeStateByID(r.Ctx, m.ID)
+		if err != nil {
+			r.Log.Error("status query error", zap.Error(err))
+		}
+		err = d.Ack(false)
+		if err != nil {
+			r.Log.Error("queue declare error", zap.Error(err))
 		}
 	}
 	r.Log.Info("handle: deliveries channel closed")
 	done <- nil
+}
+
+type Event struct {
+	ID          int64  `json:"ID"`
+	Owner       int64  `json:"Owner"`
+	Title       string `json:"Title"`
+	Description string `json:"Description"`
+	StartDate   string `json:"StartDate"`
+	StartTime   string `json:"StartTime"`
+	EndDate     string `json:"EndDate"`
+	EndTime     string `json:"EndTime"`
 }

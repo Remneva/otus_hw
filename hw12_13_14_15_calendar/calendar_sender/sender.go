@@ -38,18 +38,26 @@ func main() {
 	if err != nil {
 		log.Println("failed to create logger")
 	}
-	defer cancel()
+
 	connection, err := amqp.Dial(config.AMQP.URI)
 	if err != nil {
 		logg.Fatal("dial: ", zap.Error(err))
 	}
 	defer connection.Close()
+
 	logg.Info("AMQP", zap.String("got Connection, getting Channel", config.AMQP.URI))
 	channel, err := connection.Channel()
 	if err != nil {
 		logg.Error("channel: ", zap.Error(err))
 	}
-	c := rabbit.NewRabbit(ctx, channel, connection, logg, config, new(sql.Storage))
+
+	storage := sql.NewStorage(logg)
+	if err := storage.Connect(ctx, config.PSQL.DSN); err != nil {
+		logg.Fatal("fail connection")
+	}
+	defer storage.Close()
+
+	c := rabbit.NewRabbit(ctx, channel, connection, logg, config, storage)
 
 	err = c.Declare()
 	if err != nil {

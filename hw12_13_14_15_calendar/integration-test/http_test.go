@@ -1,14 +1,15 @@
-package test
+package main
 
 import (
+	h "/hw12_13_14_15_calendar/pkg/server/http"
 	"bytes"
 	"encoding/json"
-	h "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server/http"
-	"github.com/stretchr/testify/require"
-	"github.com/tj/assert"
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	"github.com/tj/assert"
 )
 
 func TestServerHTTPset(t *testing.T) {
@@ -60,9 +61,7 @@ func TestServerHTTPset(t *testing.T) {
 		assert.NotNil(t, resp)
 		body, err = ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)
-		assert.NotNil(t, body)
 		assert.Equal(t, 200, resp.StatusCode)
-		require.NotNil(t, body)
 
 		jsonid := h.JSONID{}
 		jsonid.ID = id
