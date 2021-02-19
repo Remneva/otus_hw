@@ -1,10 +1,10 @@
 package memorystorage
 
 import (
-	"/hw12_13_14_15_calendar/pkg/logger"
-	"/hw12_13_14_15_calendar/pkg/storage"
 	"context"
 	"fmt"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/logger"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"testing"
 
 	"github.com/stretchr/testify/require"

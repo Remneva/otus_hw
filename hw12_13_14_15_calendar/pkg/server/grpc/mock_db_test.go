@@ -5,9 +5,11 @@
 package internalgrpc
 
 import (
-	storage "/hw12_13_14_15_calendar/pkg/storage"
 	context "context"
+	storage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
+	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	reflect "reflect"
+	"time"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -140,6 +142,18 @@ func (mr *MockBaseStorageMockRecorder) UpdateEvent(ctx, ev interface{}) *gomock.
 type MockEventsStorage struct {
 	ctrl     *gomock.Controller
 	recorder *MockEventsStorageMockRecorder
+}
+
+func (m *MockEventsStorage) ChangeStatusByID(ctx context.Context, id int64) error {
+	panic("implement me")
+}
+
+func (m *MockEventsStorage) GetEventsByPeriod(ctx context.Context, starttime time.Time, endtime time.Time) ([]store.Event, error) {
+	panic("implement me")
+}
+
+func (m *MockEventsStorage) GetStatusByID(ctx context.Context, id int64) (int64, error) {
+	panic("implement me")
 }
 
 func (m *MockEventsStorage) ChangeStateById(ctx context.Context, id int64) error {

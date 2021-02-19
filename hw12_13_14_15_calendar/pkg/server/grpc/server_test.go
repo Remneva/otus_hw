@@ -1,11 +1,11 @@
 package internalgrpc
 
 import (
-	"/hw12_13_14_15_calendar/pkg/app"
-	"/hw12_13_14_15_calendar/pkg/logger"
-	"/hw12_13_14_15_calendar/pkg/server/pb"
-	"/hw12_13_14_15_calendar/pkg/storage"
 	"context"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/app"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/logger"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server/pb"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"testing"
 	"time"
 

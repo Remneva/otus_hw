@@ -1,12 +1,12 @@
 package internalhttp
 
 import (
-	"/hw12_13_14_15_calendar/pkg/app"
-	"/hw12_13_14_15_calendar/pkg/logger"
-	"/hw12_13_14_15_calendar/pkg/storage"
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/app"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/logger"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
