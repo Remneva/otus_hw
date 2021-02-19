@@ -91,3 +91,11 @@ func (e *EventMap) UpdateEvent(ctx context.Context, ev storage.Event) error {
 	}
 	return ErrNoSuchEvent
 }
+
+func (e *EventMap) ChangeStatusByID(ctx context.Context, id int64) error {
+	panic("implement me")
+}
+
+func (e *EventMap) GetStatusByID(ctx context.Context, id int64) (int64, error) {
+	panic("implement me")
+}
