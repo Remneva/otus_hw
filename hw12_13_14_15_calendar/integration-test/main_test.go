@@ -1,11 +1,11 @@
 package main
 
 import (
-	"/hw12_13_14_15_calendar/configs"
-	"/hw12_13_14_15_calendar/pkg/logger"
-	"/hw12_13_14_15_calendar/pkg/rabbit"
-	"/hw12_13_14_15_calendar/pkg/storage/sql"
 	"context"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/logger"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/rabbit"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage/sql"
 	"log"
 	"testing"
 

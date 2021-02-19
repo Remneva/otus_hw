@@ -154,7 +154,7 @@ func (r *Rabbit) Handle(deliveries <-chan amqp.Delivery, done chan error) {
 		if err != nil {
 			r.Log.Error("unmarshal error", zap.Error(err))
 		}
-		err = r.Repo.ChangeStateByID(r.Ctx, m.ID)
+		err = r.Repo.ChangeStatusByID(r.Ctx, m.ID)
 		if err != nil {
 			r.Log.Error("status query error", zap.Error(err))
 		}

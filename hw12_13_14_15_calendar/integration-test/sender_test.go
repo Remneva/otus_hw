@@ -1,7 +1,7 @@
 package main
 
 import (
-	store "/hw12_13_14_15_calendar/pkg/storage"
+	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"time"
 )
 
@@ -20,7 +20,7 @@ func (s *suiteTestIntegration) TestSender() {
 	id, err := s.s.AddEvent(s.ctx, ev)
 	s.Require().NoError(err)
 
-	status, err := s.s.GetStatusById(s.ctx, id)
+	status, err := s.s.GetStatusByID(s.ctx, id)
 	s.Require().NoError(err)
 	s.Require().Equal(int64(0), status)
 
@@ -32,7 +32,7 @@ func (s *suiteTestIntegration) TestSender() {
 
 	time.Sleep(4 * time.Second)
 
-	status, err = s.s.GetStatusById(s.ctx, id)
+	status, err = s.s.GetStatusByID(s.ctx, id)
 	s.Require().NoError(err)
 	s.Require().Equal(int64(1), status)
 

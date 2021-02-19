@@ -222,7 +222,7 @@ func (s *Storage) GetEventsByPeriod(ctx context.Context, starttime time.Time, en
 	return events, nil
 }
 
-func (s *Storage) ChangeStateByID(ctx context.Context, id int64) error {
+func (s *Storage) ChangeStatusByID(ctx context.Context, id int64) error {
 	query := `UPDATE events SET received = 1 WHERE id = $1`
 	_, err := s.db.ExecContext(ctx, query, id)
 	if err != nil {

@@ -1,9 +1,9 @@
 package main
 
 import (
-	h "/hw12_13_14_15_calendar/pkg/server/http"
 	"bytes"
 	"encoding/json"
+	h "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server/http"
 	"io/ioutil"
 	"net/http"
 	"testing"

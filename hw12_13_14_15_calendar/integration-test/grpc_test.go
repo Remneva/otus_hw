@@ -1,9 +1,9 @@
 package main
 
 import (
-	"/hw12_13_14_15_calendar/pkg/server/pb"
 	"context"
 	"fmt"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server/pb"
 	"testing"
 	"time"
 

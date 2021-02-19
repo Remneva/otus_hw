@@ -1,8 +1,8 @@
 package main
 
 import (
-	store "/hw12_13_14_15_calendar/pkg/storage"
 	"fmt"
+	store "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage"
 	"time"
 )
 
