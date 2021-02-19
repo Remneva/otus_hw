@@ -1,29 +1,15 @@
-name: Go
+name: HW
 
-os:
-  - linux
-
-git:
-  depth: 1
-  quiet: true
-  submodules: false
+on:
+  push:
+    branches:
+      - hw*
 
 env:
-  global:
-    - GO111MODULE=on
-    - GOPROXY=https://proxy.golang.org
-    - BRANCH="${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}"
-
-before_install:
-  - echo "current branch is ${BRANCH}"
-  - if [ "${BRANCH}" == "master" ]; then travis_terminate 0; fi
-  - ls ${BRANCH} && cd ${BRANCH}
-
-stages:
-  - name: Tests
+  GO111MODULE: "on"
+  GOPROXY: "https://proxy.golang.org"
 
 jobs:
-
   go_get:
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/hw12_13_14_15_calendar'
@@ -79,7 +65,7 @@ jobs:
         working-directory: ${{env.BRANCH}}
 
       - name: Optimization tests
-        run: go test -v -count=100 -timeout=30s -tags bench ./...
+        run: go test -v -count=1 -timeout=30s -tags bench ./...
         if: env.BRANCH == 'hw10_program_optimization'
         working-directory: ${{env.BRANCH}}
 
