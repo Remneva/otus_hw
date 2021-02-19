@@ -1,14 +1,26 @@
 name: Go
 
-on:
-  push:
-    branches: [ hw* ]
-  pull_request:
-    branches: [ master ]
+os:
+  - linux
+
+git:
+  depth: 1
+  quiet: true
+  submodules: false
 
 env:
-  GO111MODULE: "on"
-  GOPROXY: "https://proxy.golang.org"
+  global:
+    - GO111MODULE=on
+    - GOPROXY=https://proxy.golang.org
+    - BRANCH="${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}"
+
+before_install:
+  - echo "current branch is ${BRANCH}"
+  - if [ "${BRANCH}" == "master" ]; then travis_terminate 0; fi
+  - ls ${BRANCH} && cd ${BRANCH}
+
+stages:
+  - name: Tests
 
 jobs:
 
