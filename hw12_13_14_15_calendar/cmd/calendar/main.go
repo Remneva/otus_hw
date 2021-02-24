@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/configs"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/app"
-	srv "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server"
-	internalgrpc "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/grpc"
-	internalhttp "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/internal/storage/sql"
-	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/logger"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/app"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/logger"
+	srv "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server"
+	internalgrpc "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server/grpc"
+	internalhttp "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/server/http"
+	memorystorage "github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage/memory"
+	"github.com/Remneva/otus_hw/hw12_13_14_15_calendar/pkg/storage/sql"
 	"github.com/apex/log"
 	"go.uber.org/zap"
 )
@@ -27,7 +27,7 @@ var env string
 
 func init() {
 	flag.StringVar(&config, "config", "./configs/config.toml", "Path to configuration file")
-	flag.StringVar(&env, "env", "dev", "environmental")
+	flag.StringVar(&env, "env", "prod", "environmental")
 }
 
 func main() {

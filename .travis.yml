@@ -80,3 +80,19 @@ jobs:
       if: |
         (type = push AND branch == hw12_13_14_15_calendar) OR \
         (type = pull_request AND head_branch == hw12_13_14_15_calendar)
+
+    - stage: "Integration-Tests"
+      name: "Makefile"
+      install: echo "echo"
+      before_script:
+        - tmpdaemon=$(mktemp)
+        - sudo jq '."registry-mirrors" += ["https://mirror.gcr.io"]' /etc/docker/daemon.json > $tmpdaemon
+        - sudo mv $tmpdaemon /etc/docker/daemon.json
+        - sudo systemctl daemon-reload
+        - sudo systemctl restart docker
+        - docker system info
+      script:
+        - make api-test
+      if: |
+        (type = push AND branch == hw12_13_14_15_calendar) OR \
+        (type = pull_request AND head_branch == hw12_13_14_15_calendar)

@@ -2,7 +2,6 @@ package configs
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/BurntSushi/toml"
 	"go.uber.org/zap/zapcore"
@@ -41,7 +40,7 @@ type AMQPConfig struct {
 	RoutingKey   string
 	Body         string
 	Reliable     bool
-	Timeout      time.Duration
+	Timeout      uint64
 	ConsumerTag  string
 	Queue        string
 }
